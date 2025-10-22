@@ -17,6 +17,14 @@
 	"license": "ISC",
 	"packageManager": "pnpm@10.11.0",
 	"devDependencies": {
-		"@biomejs/biome": "2.2.6"
+		"@biomejs/biome": "2.2.6",
+		"lint-staged": "^16.2.6",
+		"simple-git-hooks": "^2.13.1"
+	},
+	"simple-git-hooks": {
+		"pre-commit": "npx lint-staged"
+	},
+	"lint-staged": {
+		"*": "pnpm check:fix"
 	}
 }
