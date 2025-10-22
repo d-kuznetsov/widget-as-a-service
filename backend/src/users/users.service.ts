@@ -2,11 +2,11 @@ import {
 	ConflictException,
 	Injectable,
 	NotFoundException,
-} from "@nestjs/common";
-import type { CreateUserDto } from "./dto/create-user.dto";
-import type { UpdateUserDto } from "./dto/update-user.dto";
-import { User } from "./entities/user.entity";
-import { Role } from "./enums/role.enum";
+} from '@nestjs/common';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
+import { Role } from './enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -16,18 +16,18 @@ export class UsersService {
 	constructor() {
 		// Initialize with some sample users
 		this.create({
-			email: "admin@example.com",
-			username: "admin",
-			firstName: "Admin",
-			lastName: "User",
+			email: 'admin@example.com',
+			username: 'admin',
+			firstName: 'Admin',
+			lastName: 'User',
 			role: Role.ADMIN,
 		});
 
 		this.create({
-			email: "user@example.com",
-			username: "user",
-			firstName: "Regular",
-			lastName: "User",
+			email: 'user@example.com',
+			username: 'user',
+			firstName: 'Regular',
+			lastName: 'User',
 			role: Role.USER,
 		});
 	}
@@ -35,18 +35,18 @@ export class UsersService {
 	async create(createUserDto: CreateUserDto): Promise<User> {
 		// Check if email already exists
 		const existingUser = this.users.find(
-			(user) => user.email === createUserDto.email,
+			(user) => user.email === createUserDto.email
 		);
 		if (existingUser) {
-			throw new ConflictException("User with this email already exists");
+			throw new ConflictException('User with this email already exists');
 		}
 
 		// Check if username already exists
 		const existingUsername = this.users.find(
-			(user) => user.username === createUserDto.username,
+			(user) => user.username === createUserDto.username
 		);
 		if (existingUsername) {
-			throw new ConflictException("User with this username already exists");
+			throw new ConflictException('User with this username already exists');
 		}
 
 		const user = new User({
@@ -94,10 +94,10 @@ export class UsersService {
 			updateUserDto.email !== this.users[userIndex].email
 		) {
 			const existingUser = this.users.find(
-				(user) => user.email === updateUserDto.email && user.id !== id,
+				(user) => user.email === updateUserDto.email && user.id !== id
 			);
 			if (existingUser) {
-				throw new ConflictException("User with this email already exists");
+				throw new ConflictException('User with this email already exists');
 			}
 		}
 
@@ -107,10 +107,10 @@ export class UsersService {
 			updateUserDto.username !== this.users[userIndex].username
 		) {
 			const existingUser = this.users.find(
-				(user) => user.username === updateUserDto.username && user.id !== id,
+				(user) => user.username === updateUserDto.username && user.id !== id
 			);
 			if (existingUser) {
-				throw new ConflictException("User with this username already exists");
+				throw new ConflictException('User with this username already exists');
 			}
 		}
 

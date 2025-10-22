@@ -7,14 +7,14 @@ import {
 	Patch,
 	Post,
 	Query,
-} from "@nestjs/common";
-import type { CreateUserDto } from "./dto/create-user.dto";
-import type { UpdateUserDto } from "./dto/update-user.dto";
-import { UserResponseDto } from "./dto/user-response.dto";
-import type { Role } from "./enums/role.enum";
-import type { UsersService } from "./users.service";
+} from '@nestjs/common';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import type { Role } from './enums/role.enum';
+import type { UsersService } from './users.service';
 
-@Controller("users")
+@Controller('users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
 
@@ -26,11 +26,11 @@ export class UsersController {
 
 	@Get()
 	async findAll(@Query('role') role?: Role) {
-		const users = role 
+		const users = role
 			? await this.usersService.findByRole(role)
 			: await this.usersService.findAll();
-		
-		return users.map(user => new UserResponseDto(user));
+
+		return users.map((user) => new UserResponseDto(user));
 	}
 
 	@Get(':id')
@@ -39,7 +39,7 @@ export class UsersController {
 		return new UserResponseDto(user);
 	}
 
-	@Patch(":id")
+	@Patch(':id')
 	async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
 		const user = await this.usersService.update(id, updateUserDto);
 		return new UserResponseDto(user);
