@@ -1,0 +1,70 @@
+### Variables
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Test 1: Login with valid credentials (john)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "john",
+  "password": "changeme"
+}
+
+### Test 2: Login with valid credentials (maria)
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "maria",
+  "password": "guess"
+}
+
+### Test 3: Login with invalid username
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "invalid_user",
+  "password": "changeme"
+}
+
+### Test 4: Login with invalid password
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "john",
+  "password": "wrong_password"
+}
+
+### Test 5: Login with missing username
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "password": "changeme"
+}
+
+### Test 6: Login with missing password
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "john"
+}
+
+### Test 7: Login with empty body
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{}
+
+### Test 8: Login with malformed JSON
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "john",
+  "password": "changeme"
+  // Missing closing brace

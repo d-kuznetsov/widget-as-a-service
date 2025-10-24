@@ -1,0 +1,17 @@
+### Development Environment
+@dev_baseUrl = http://localhost:3000
+@dev_contentType = application/json
+
+### Staging Environment (example)
+@staging_baseUrl = https://staging-api.yourdomain.com
+@staging_contentType = application/json
+
+### Production Environment (example)
+@prod_baseUrl = https://api.yourdomain.com
+@prod_contentType = application/json
+
+### Test Users
+@john_username = john
+@john_password = changeme
+@maria_username = maria
+@maria_password = guess
