@@ -10,7 +10,8 @@
 				"noExplicitAny": "warn"
 			},
 			"style": {
-				"noParameterProperties": "off"
+				"noParameterProperties": "off",
+				"useImportType": "off"
 			},
 			"correctness": {
 				"noUnusedFunctionParameters": "off"
