@@ -11,7 +11,7 @@ import { UsersModule } from './users/users.module';
 
 const typeOrmModuleOptions: TypeOrmModuleOptions = {
 	type: 'sqlite',
-	database: 'db.sqlite',
+	database: process.env.DATABASE_PATH || 'src/database/db.sqlite',
 	entities: [Role, User],
 	synchronize: true,
 	logging: true,

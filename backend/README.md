@@ -42,8 +42,8 @@ JWT_SECRET=your-super-secret-jwt-key-here
 # Admin User Configuration
 ADMIN_PASSWORD=SecureAdminPassword123!
 
-# Database Configuration (if needed)
-# DATABASE_URL=sqlite:./db.sqlite
+# Database Configuration
+DATABASE_PATH=src/database/db.sqlite
 
 # Application Configuration
 # PORT=3000
@@ -54,6 +54,11 @@ ADMIN_PASSWORD=SecureAdminPassword123!
 - Never commit the `.env` file to version control
 - Use a strong, unique JWT secret in production
 - Change the default admin password before deploying to production
+
+**Database Location:**
+- The SQLite database is located at `src/database/db.sqlite`
+- You can customize the database path using the `DATABASE_PATH` environment variable
+- The database file is automatically created when the application starts
 
 ## Compile and run the project
 
