@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
+import { RequireRoles } from './roles.decorator';
+import { RolesGuard } from './roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +27,14 @@ export class AuthController {
 	@Get('profile')
 	// biome-ignore lint/suspicious/noExplicitAny: <later>
 	getProfile(@Request() req: any) {
+		return req.user;
+	}
+
+	@UseGuards(AuthGuard, RolesGuard)
+	@Get('profile-admin')
+	@RequireRoles('admin')
+	// biome-ignore lint/suspicious/noExplicitAny: <later>
+	getAdminProfile(@Request() req: any) {
 		return req.user;
 	}
 }
