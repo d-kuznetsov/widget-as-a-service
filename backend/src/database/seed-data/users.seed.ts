@@ -9,7 +9,7 @@ export const usersSeedData: UserSeedData[] = [
 	{
 		username: 'admin',
 		email: 'admin@example.com',
-		password: 'admin123',
+		password: process.env.ADMIN_PASSWORD || 'SecureAdminPassword123!',
 		roleNames: ['admin'],
 	},
 	{
@@ -23,11 +23,5 @@ export const usersSeedData: UserSeedData[] = [
 		email: 'jane.moderator@example.com',
 		password: 'mod123',
 		roleNames: ['moderator'],
-	},
-	{
-		username: 'test_user',
-		email: 'test@example.com',
-		password: 'test123',
-		roleNames: ['user', 'guest'], // Multiple roles example
 	},
 ];

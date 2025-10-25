@@ -1,15 +1,15 @@
 ### Variables
 @baseUrl = http://localhost:3000
 @contentType = application/json
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiam9obiIsImlhdCI6MTc2MTMwNzc1MywiZXhwIjoxNzYxMzA4MTEzfQ.d8OGJAWoO860YDQyw9e68TIyeThN0QTwIYGb97iMnjo
+@accessToken = {{$dotenv ACCESS_TOKEN}}
 
-### Test 1: Login with valid credentials (john)
+### Test 1: Login with valid credentials (john_doe)
 POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "username": "john",
-  "password": "changeme"
+  "username": "john_doe",
+  "password": "user123"
 }
 
 
@@ -19,7 +19,7 @@ Content-Type: {{contentType}}
 
 {
   "username": "invalid_user",
-  "password": "changeme"
+  "password": "user123"
 }
 
 ### Test 3: Login with invalid password
@@ -27,7 +27,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "username": "john",
+  "username": "john_doe",
   "password": "wrong_password"
 }
 
@@ -36,7 +36,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "password": "changeme"
+  "password": "user123"
 }
 
 ### Test 5: Login with missing password
@@ -44,7 +44,7 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "username": "john"
+  "username": "john_doe"
 }
 
 ### Test 6: Login with empty body
@@ -54,25 +54,20 @@ Content-Type: {{contentType}}
 {}
 
 
-### Test 7: Get user profile with valid token
-GET {{baseUrl}}/auth/profile
-Authorization: Bearer {{accessToken}}
+### Test 7: Login with admin credentials
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
 
-### Test 8: Get user profile without token
-GET {{baseUrl}}/auth/profile
+{
+  "username": "admin",
+  "password": "SecureAdminPassword123!"
+}
 
-### Test 9: Get user profile with invalid token
-GET {{baseUrl}}/auth/profile
-Authorization: Bearer invalid_token_here
+### Test 8: Login with moderator credentials
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
 
-### Test 10: Get user profile with malformed authorization header
-GET {{baseUrl}}/auth/profile
-Authorization: InvalidFormat token_here
-
-### Test 1: Get user profile with empty authorization header
-GET {{baseUrl}}/auth/profile
-Authorization: 
-
-### Test 14: Get user profile with expired token (if you have one)
-# GET {{baseUrl}}/auth/profile
-# Authorization: Bearer expired_token_here
+{
+  "username": "jane_moderator",
+  "password": "mod123"
+}

@@ -11,7 +11,9 @@
 @prod_contentType = application/json
 
 ### Test Users
-@john_username = john
-@john_password = changeme
-@maria_username = maria
-@maria_password = guess
+@john_username = john_doe
+@john_password = user123
+@admin_username = admin
+@admin_password = SecureAdminPassword123!
+@moderator_username = jane_moderator
+@moderator_password = mod123

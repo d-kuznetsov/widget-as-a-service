@@ -1,17 +1,6 @@
-import {
-	Body,
-	Controller,
-	Get,
-	HttpCode,
-	HttpStatus,
-	Post,
-	Request,
-	UseGuards,
-} from '@nestjs/common';
-import { AuthGuard } from './auth.guard';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RequireRoles } from './roles.decorator';
-import { RolesGuard } from './roles.guard';
+import { SignInDto } from './dto/sign-in.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -19,22 +8,7 @@ export class AuthController {
 
 	@Post('login')
 	@HttpCode(HttpStatus.OK)
-	signIn(@Body() signInDto: Record<string, any>) {
+	signIn(@Body() signInDto: SignInDto) {
 		return this.authService.signIn(signInDto.username, signInDto.password);
-	}
-
-	@UseGuards(AuthGuard)
-	@Get('profile')
-	// biome-ignore lint/suspicious/noExplicitAny: <later>
-	getProfile(@Request() req: any) {
-		return req.user;
-	}
-
-	@UseGuards(AuthGuard, RolesGuard)
-	@Get('profile-admin')
-	@RequireRoles('admin')
-	// biome-ignore lint/suspicious/noExplicitAny: <later>
-	getAdminProfile(@Request() req: any) {
-		return req.user;
 	}
 }

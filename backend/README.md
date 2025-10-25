@@ -31,6 +31,30 @@
 $ pnpm install
 ```
 
+## Environment Variables
+
+Create a `.env` file in the backend directory with the following variables:
+
+```bash
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-here
+
+# Admin User Configuration
+ADMIN_PASSWORD=SecureAdminPassword123!
+
+# Database Configuration (if needed)
+# DATABASE_URL=sqlite:./db.sqlite
+
+# Application Configuration
+# PORT=3000
+# NODE_ENV=development
+```
+
+**Important Security Notes:**
+- Never commit the `.env` file to version control
+- Use a strong, unique JWT secret in production
+- Change the default admin password before deploying to production
+
 ## Compile and run the project
 
 ```bash
