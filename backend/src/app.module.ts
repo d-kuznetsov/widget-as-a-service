@@ -3,6 +3,7 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from './database/database.module';
 import { Role } from './roles/role.entity';
 import { RolesModule } from './roles/roles.module';
 import { User } from './users/user.entity';
@@ -21,6 +22,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		TypeOrmModule.forRootAsync({
 			useFactory: () => typeOrmModuleOptions,
 		}),
+		DatabaseModule,
 		AuthModule,
 		UsersModule,
 		RolesModule,
