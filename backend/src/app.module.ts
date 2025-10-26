@@ -6,6 +6,8 @@ import { AppointmentsModule } from './appointments/appointments.module';
 import { Appointment } from './appointments/entities/appointment.entity';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
+import { Exception } from './exceptions/entities/exception.entity';
+import { ExceptionModule } from './exceptions/exception.module';
 import { Role } from './roles/role.entity';
 import { RolesModule } from './roles/roles.module';
 import { Service } from './services/entities/service.entity';
@@ -20,7 +22,15 @@ import { WorkingHoursModule } from './working-hours/working-hours.module';
 const typeOrmModuleOptions: TypeOrmModuleOptions = {
 	type: 'sqlite',
 	database: process.env.DATABASE_PATH || 'src/database/db.sqlite',
-	entities: [Role, User, Specialist, Service, Appointment, WorkingHours],
+	entities: [
+		Role,
+		User,
+		Specialist,
+		Service,
+		Appointment,
+		WorkingHours,
+		Exception,
+	],
 	synchronize: true,
 	logging: true,
 };
@@ -38,6 +48,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		ServiceModule,
 		AppointmentsModule,
 		WorkingHoursModule,
+		ExceptionModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
