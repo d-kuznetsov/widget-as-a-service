@@ -14,11 +14,13 @@ import { Specialist } from './specialist/entities/specialist.entity';
 import { SpecialistModule } from './specialist/specialist.module';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
+import { WorkingHours } from './working-hours/entities/working-hours.entity';
+import { WorkingHoursModule } from './working-hours/working-hours.module';
 
 const typeOrmModuleOptions: TypeOrmModuleOptions = {
 	type: 'sqlite',
 	database: process.env.DATABASE_PATH || 'src/database/db.sqlite',
-	entities: [Role, User, Specialist, Service, Appointment],
+	entities: [Role, User, Specialist, Service, Appointment, WorkingHours],
 	synchronize: true,
 	logging: true,
 };
@@ -35,6 +37,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		SpecialistModule,
 		ServiceModule,
 		AppointmentsModule,
+		WorkingHoursModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
