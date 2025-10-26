@@ -46,6 +46,25 @@ export class ServiceController {
 		return this.serviceService.update(id, updateServiceDto);
 	}
 
+	@Post(':id/specialists/:specialistId')
+	addSpecialistToService(
+		@Param('id', ParseUUIDPipe) serviceId: string,
+		@Param('specialistId', ParseUUIDPipe) specialistId: string
+	) {
+		return this.serviceService.addSpecialistToService(serviceId, specialistId);
+	}
+
+	@Delete(':id/specialists/:specialistId')
+	removeSpecialistFromService(
+		@Param('id', ParseUUIDPipe) serviceId: string,
+		@Param('specialistId', ParseUUIDPipe) specialistId: string
+	) {
+		return this.serviceService.removeSpecialistFromService(
+			serviceId,
+			specialistId
+		);
+	}
+
 	@Delete(':id')
 	remove(@Param('id', ParseUUIDPipe) id: string) {
 		return this.serviceService.remove(id);

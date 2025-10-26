@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsString, IsUUID, Min } from 'class-validator';
+import {
+	IsArray,
+	IsNotEmpty,
+	IsNumber,
+	IsString,
+	IsUUID,
+	Min,
+} from 'class-validator';
 
 export class CreateServiceDto {
 	@IsNotEmpty()
@@ -16,6 +23,7 @@ export class CreateServiceDto {
 	price: number;
 
 	@IsNotEmpty()
-	@IsUUID()
-	specialistId: string;
+	@IsArray()
+	@IsUUID('4', { each: true })
+	specialistIds: string[];
 }

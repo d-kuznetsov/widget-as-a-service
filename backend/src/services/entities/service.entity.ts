@@ -2,8 +2,8 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
-	JoinColumn,
-	ManyToOne,
+	JoinTable,
+	ManyToMany,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
@@ -23,9 +23,16 @@ export class Service {
 	@Column({ type: 'decimal', precision: 10, scale: 2 })
 	price: number;
 
-	@ManyToOne(() => Specialist, { nullable: false })
-	@JoinColumn({ name: 'specialist_id' })
-	specialist: Specialist;
+	@ManyToMany(
+		() => Specialist,
+		(specialist) => specialist.services
+	)
+	@JoinTable({
+		name: 'service_specialists',
+		joinColumn: { name: 'service_id' },
+		inverseJoinColumn: { name: 'specialist_id' },
+	})
+	specialists: Specialist[];
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;

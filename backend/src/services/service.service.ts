@@ -16,14 +16,18 @@ export class ServiceService {
 	) {}
 
 	async create(createServiceDto: CreateServiceDto): Promise<Service> {
-		// Verify specialist exists
-		const specialist = await this.specialistRepository.findOne({
-			where: { id: createServiceDto.specialistId },
-		});
+		// Verify all specialists exist
+		const specialists = await this.specialistRepository.findByIds(
+			createServiceDto.specialistIds
+		);
 
-		if (!specialist) {
+		if (specialists.length !== createServiceDto.specialistIds.length) {
+			const foundIds = specialists.map((s) => s.id);
+			const missingIds = createServiceDto.specialistIds.filter(
+				(id) => !foundIds.includes(id)
+			);
 			throw new NotFoundException(
-				`Specialist with ID ${createServiceDto.specialistId} not found`
+				`Specialists with IDs ${missingIds.join(', ')} not found`
 			);
 		}
 
@@ -31,7 +35,7 @@ export class ServiceService {
 			name: createServiceDto.name,
 			duration: createServiceDto.duration,
 			price: createServiceDto.price,
-			specialist: specialist,
+			specialists: specialists,
 		});
 
 		return this.serviceRepository.save(service);
@@ -39,14 +43,14 @@ export class ServiceService {
 
 	async findAll(): Promise<Service[]> {
 		return this.serviceRepository.find({
-			relations: ['specialist'],
+			relations: ['specialists'],
 		});
 	}
 
 	async findOne(id: string): Promise<Service> {
 		const service = await this.serviceRepository.findOne({
 			where: { id },
-			relations: ['specialist'],
+			relations: ['specialists'],
 		});
 
 		if (!service) {
@@ -58,8 +62,8 @@ export class ServiceService {
 
 	async findBySpecialistId(specialistId: string): Promise<Service[]> {
 		return this.serviceRepository.find({
-			where: { specialist: { id: specialistId } },
-			relations: ['specialist'],
+			where: { specialists: { id: specialistId } },
+			relations: ['specialists'],
 		});
 	}
 
@@ -78,18 +82,23 @@ export class ServiceService {
 		if (updateServiceDto.price !== undefined) {
 			service.price = updateServiceDto.price;
 		}
-		if (updateServiceDto.specialistId !== undefined) {
-			const specialist = await this.specialistRepository.findOne({
-				where: { id: updateServiceDto.specialistId },
-			});
+		if (updateServiceDto.specialistIds !== undefined) {
+			// Verify all specialists exist
+			const specialists = await this.specialistRepository.findByIds(
+				updateServiceDto.specialistIds
+			);
 
-			if (!specialist) {
+			if (specialists.length !== updateServiceDto.specialistIds.length) {
+				const foundIds = specialists.map((s) => s.id);
+				const missingIds = updateServiceDto.specialistIds.filter(
+					(id) => !foundIds.includes(id)
+				);
 				throw new NotFoundException(
-					`Specialist with ID ${updateServiceDto.specialistId} not found`
+					`Specialists with IDs ${missingIds.join(', ')} not found`
 				);
 			}
 
-			service.specialist = specialist;
+			service.specialists = specialists;
 		}
 
 		return this.serviceRepository.save(service);
@@ -98,5 +107,44 @@ export class ServiceService {
 	async remove(id: string): Promise<void> {
 		const service = await this.findOne(id);
 		await this.serviceRepository.remove(service);
+	}
+
+	async addSpecialistToService(
+		serviceId: string,
+		specialistId: string
+	): Promise<Service> {
+		const service = await this.findOne(serviceId);
+		const specialist = await this.specialistRepository.findOne({
+			where: { id: specialistId },
+		});
+
+		if (!specialist) {
+			throw new NotFoundException(
+				`Specialist with ID ${specialistId} not found`
+			);
+		}
+
+		// Check if specialist is already assigned
+		const isAlreadyAssigned = service.specialists.some(
+			(s) => s.id === specialistId
+		);
+		if (!isAlreadyAssigned) {
+			service.specialists.push(specialist);
+			return this.serviceRepository.save(service);
+		}
+
+		return service;
+	}
+
+	async removeSpecialistFromService(
+		serviceId: string,
+		specialistId: string
+	): Promise<Service> {
+		const service = await this.findOne(serviceId);
+
+		service.specialists = service.specialists.filter(
+			(s) => s.id !== specialistId
+		);
+		return this.serviceRepository.save(service);
 	}
 }
