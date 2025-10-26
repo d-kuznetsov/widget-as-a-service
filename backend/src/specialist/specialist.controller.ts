@@ -7,15 +7,15 @@ import {
 	Patch,
 	Post,
 	Put,
-	UseGuards,
+	// UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+// import { AuthGuard } from '../auth/auth.guard';
 import { CreateSpecialistDto } from './dto/create-specialist.dto';
 import { UpdateSpecialistDto } from './dto/update-specialist.dto';
 import { SpecialistService } from './specialist.service';
 
 @Controller('specialists')
-@UseGuards(AuthGuard)
+// @UseGuards(AuthGuard)
 export class SpecialistController {
 	constructor(private readonly specialistService: SpecialistService) {}
 
