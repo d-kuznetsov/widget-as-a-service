@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { Role } from './roles/role.entity';
 import { RolesModule } from './roles/roles.module';
+import { Service } from './services/entities/service.entity';
+import { ServiceModule } from './services/service.module';
 import { Specialist } from './specialist/entities/specialist.entity';
 import { SpecialistModule } from './specialist/specialist.module';
 import { User } from './users/user.entity';
@@ -14,7 +16,7 @@ import { UsersModule } from './users/users.module';
 const typeOrmModuleOptions: TypeOrmModuleOptions = {
 	type: 'sqlite',
 	database: process.env.DATABASE_PATH || 'src/database/db.sqlite',
-	entities: [Role, User, Specialist],
+	entities: [Role, User, Specialist, Service],
 	synchronize: true,
 	logging: true,
 };
@@ -29,6 +31,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		UsersModule,
 		RolesModule,
 		SpecialistModule,
+		ServiceModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
