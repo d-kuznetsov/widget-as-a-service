@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { Appointment } from './appointments/entities/appointment.entity';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { Role } from './roles/role.entity';
@@ -16,7 +18,7 @@ import { UsersModule } from './users/users.module';
 const typeOrmModuleOptions: TypeOrmModuleOptions = {
 	type: 'sqlite',
 	database: process.env.DATABASE_PATH || 'src/database/db.sqlite',
-	entities: [Role, User, Specialist, Service],
+	entities: [Role, User, Specialist, Service, Appointment],
 	synchronize: true,
 	logging: true,
 };
@@ -32,6 +34,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		RolesModule,
 		SpecialistModule,
 		ServiceModule,
+		AppointmentsModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
