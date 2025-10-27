@@ -5,6 +5,7 @@ export interface SeedConfig {
 	specialists: boolean;
 	workingHours: boolean;
 	appointments: boolean;
+	exceptions: boolean;
 	clearBeforeSeed: boolean;
 }
 
@@ -20,6 +21,7 @@ export const getSeedConfig = (): SeedConfig => {
 				specialists: true,
 				workingHours: true,
 				appointments: false, // Don't seed appointments in production
+				exceptions: false, // Don't seed exceptions in production
 				clearBeforeSeed: false,
 			};
 		case 'test':
@@ -30,6 +32,7 @@ export const getSeedConfig = (): SeedConfig => {
 				specialists: true,
 				workingHours: true,
 				appointments: true,
+				exceptions: true,
 				clearBeforeSeed: true, // Always clear in test
 			};
 		default:
@@ -40,6 +43,7 @@ export const getSeedConfig = (): SeedConfig => {
 				specialists: true,
 				workingHours: true,
 				appointments: true,
+				exceptions: true,
 				clearBeforeSeed: false,
 			};
 	}

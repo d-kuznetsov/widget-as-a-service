@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { Appointment } from '../appointments/entities/appointment.entity';
+import { Exception } from '../exceptions/entities/exception.entity';
 import { Role } from '../roles/role.entity';
 import { Service } from '../services/entities/service.entity';
 import { Specialist } from '../specialist/entities/specialist.entity';
@@ -10,6 +11,7 @@ import { User } from '../users/user.entity';
 import { WorkingHours } from '../working-hours/entities/working-hours.entity';
 import { getSeedConfig } from './seed-config';
 import { appointmentsSeedData } from './seed-data/appointments.seed';
+import { exceptionsSeedData } from './seed-data/exceptions.seed';
 import { rolesSeedData } from './seed-data/roles.seed';
 import { servicesSeedData } from './seed-data/services.seed';
 import { specialistsSeedData } from './seed-data/specialists.seed';
@@ -32,7 +34,9 @@ export class SeederService {
 		@InjectRepository(WorkingHours)
 		private readonly workingHoursRepository: Repository<WorkingHours>,
 		@InjectRepository(Appointment)
-		private readonly appointmentRepository: Repository<Appointment>
+		private readonly appointmentRepository: Repository<Appointment>,
+		@InjectRepository(Exception)
+		private readonly exceptionRepository: Repository<Exception>
 	) {}
 
 	async seed(): Promise<void> {
@@ -68,6 +72,10 @@ export class SeederService {
 
 			if (config.appointments) {
 				await this.seedAppointments();
+			}
+
+			if (config.exceptions) {
+				await this.seedExceptions();
 			}
 
 			this.logger.log('Database seeding completed successfully!');
@@ -292,11 +300,56 @@ export class SeederService {
 		}
 	}
 
+	private async seedExceptions(): Promise<void> {
+		this.logger.log('Seeding exceptions...');
+
+		for (const exceptionData of exceptionsSeedData) {
+			const specialist = await this.specialistRepository.findOne({
+				where: { name: exceptionData.specialistName },
+			});
+
+			if (!specialist) {
+				this.logger.warn(
+					`Specialist not found: ${exceptionData.specialistName}`
+				);
+				continue;
+			}
+
+			const existingException = await this.exceptionRepository.findOne({
+				where: {
+					specialist: { id: specialist.id },
+					date: new Date(exceptionData.date),
+					startTime: exceptionData.startTime,
+				},
+			});
+
+			if (!existingException) {
+				const exception = this.exceptionRepository.create({
+					date: new Date(exceptionData.date),
+					startTime: exceptionData.startTime,
+					endTime: exceptionData.endTime,
+					reason: exceptionData.reason,
+					specialist,
+				});
+
+				await this.exceptionRepository.save(exception);
+				this.logger.log(
+					`Created exception for ${exceptionData.specialistName} on ${exceptionData.date}`
+				);
+			} else {
+				this.logger.log(
+					`Exception already exists for ${exceptionData.specialistName} on ${exceptionData.date}`
+				);
+			}
+		}
+	}
+
 	async clearDatabase(): Promise<void> {
 		this.logger.log('Clearing database...');
 
 		// Clear in reverse order due to foreign key constraints
 		// Use clear() method instead of delete({}) for clearing all records
+		await this.exceptionRepository.clear();
 		await this.appointmentRepository.clear();
 		await this.workingHoursRepository.clear();
 		await this.specialistRepository.clear();
