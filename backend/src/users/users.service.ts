@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { Role } from '../roles/role.entity';
 import { User } from './user.entity';
 
@@ -52,7 +52,27 @@ export class UsersService {
 			email,
 			passwordHash,
 		});
-		return this.usersRepository.save(user);
+
+		try {
+			return await this.usersRepository.save(user);
+		} catch (error) {
+			if (error instanceof QueryFailedError) {
+				// Check if it's a unique constraint violation
+				if (error.message.includes('UNIQUE constraint failed')) {
+					if (error.message.includes('users.email')) {
+						throw new ConflictException(
+							'A user with this email already exists'
+						);
+					}
+					if (error.message.includes('users.username')) {
+						throw new ConflictException(
+							'A user with this username already exists'
+						);
+					}
+				}
+			}
+			throw error;
+		}
 	}
 
 	async validatePassword(user: User, password: string): Promise<boolean> {
@@ -88,21 +108,30 @@ export class UsersService {
 		password: string,
 		roleName: string
 	): Promise<User> {
-		// Create the user first
-		const user = await this.create(username, email, password);
+		try {
+			// Create the user first
+			const user = await this.create(username, email, password);
 
-		// Find the specified role
-		const role = await this.rolesRepository.findOne({
-			where: { name: roleName },
-		});
+			// Find the specified role
+			const role = await this.rolesRepository.findOne({
+				where: { name: roleName },
+			});
 
-		if (!role) {
-			throw new Error(`Role '${roleName}' not found`);
+			if (!role) {
+				throw new Error(`Role '${roleName}' not found`);
+			}
+
+			// Assign the role to the user
+			await this.assignRole(user.id, role.id);
+
+			return user;
+		} catch (error) {
+			// Re-throw ConflictException from create method
+			if (error instanceof ConflictException) {
+				throw error;
+			}
+			// Re-throw other errors
+			throw error;
 		}
-
-		// Assign the role to the user
-		await this.assignRole(user.id, role.id);
-
-		return user;
 	}
 }
