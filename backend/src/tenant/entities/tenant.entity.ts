@@ -20,6 +20,9 @@ export class Tenant {
 	@Column({ type: 'text' })
 	address: string;
 
+	@Column({ length: 50, default: 'UTC' })
+	timezone: string;
+
 	@ManyToOne(() => User, { nullable: false })
 	@JoinColumn({ name: 'owner_id' })
 	owner: User;

@@ -3,7 +3,7 @@ export const ROLES = {
 	SUPER_ADMIN: 'super_admin',
 	TENANT_ADMIN: 'tenant_admin',
 	SPECIALIST: 'specialist',
-	USER: 'user',
+	CLIENT: 'client',
 } as const;
 
 export type RoleName = (typeof ROLES)[keyof typeof ROLES];
@@ -14,11 +14,11 @@ export const ROLE_HIERARCHY: Record<RoleName, RoleName[]> = {
 		ROLES.SUPER_ADMIN,
 		ROLES.TENANT_ADMIN,
 		ROLES.SPECIALIST,
-		ROLES.USER,
+		ROLES.CLIENT,
 	],
-	[ROLES.TENANT_ADMIN]: [ROLES.TENANT_ADMIN, ROLES.SPECIALIST, ROLES.USER],
-	[ROLES.SPECIALIST]: [ROLES.SPECIALIST, ROLES.USER],
-	[ROLES.USER]: [ROLES.USER],
+	[ROLES.TENANT_ADMIN]: [ROLES.TENANT_ADMIN, ROLES.SPECIALIST, ROLES.CLIENT],
+	[ROLES.SPECIALIST]: [ROLES.SPECIALIST, ROLES.CLIENT],
+	[ROLES.CLIENT]: [ROLES.CLIENT],
 };
 
 // Helper function to check if a role has permission for another role

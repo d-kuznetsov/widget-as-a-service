@@ -13,7 +13,7 @@ export const rolesSeedData = [
 		description: 'Specialist with access to manage appointments and services',
 	},
 	{
-		name: 'user',
-		description: 'Regular user with basic access to book appointments',
+		name: 'client',
+		description: 'Client with basic access to book appointments',
 	},
 ];
