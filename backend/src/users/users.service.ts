@@ -81,4 +81,28 @@ export class UsersService {
 			}
 		}
 	}
+
+	async createWithRole(
+		username: string,
+		email: string,
+		password: string,
+		roleName: string
+	): Promise<User> {
+		// Create the user first
+		const user = await this.create(username, email, password);
+
+		// Find the specified role
+		const role = await this.rolesRepository.findOne({
+			where: { name: roleName },
+		});
+
+		if (!role) {
+			throw new Error(`Role '${roleName}' not found`);
+		}
+
+		// Assign the role to the user
+		await this.assignRole(user.id, role.id);
+
+		return user;
+	}
 }
