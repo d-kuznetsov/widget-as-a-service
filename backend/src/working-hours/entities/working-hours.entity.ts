@@ -8,6 +8,7 @@ import {
 	UpdateDateColumn,
 } from 'typeorm';
 import { Specialist } from '../../specialist/entities/specialist.entity';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 
 export enum DayOfWeek {
 	MONDAY = 'monday',
@@ -43,6 +44,10 @@ export class WorkingHours {
 	@ManyToOne(() => Specialist)
 	@JoinColumn({ name: 'specialist_id' })
 	specialist: Specialist;
+
+	@ManyToOne(() => Tenant, { nullable: true })
+	@JoinColumn({ name: 'tenant_id' })
+	tenant: Tenant | null;
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;

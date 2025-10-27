@@ -4,11 +4,13 @@ import {
 	Entity,
 	JoinColumn,
 	ManyToMany,
+	ManyToOne,
 	OneToOne,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
 import { Service } from '../../services/entities/service.entity';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 import { User } from '../../users/user.entity';
 
 @Entity('specialists')
@@ -25,6 +27,10 @@ export class Specialist {
 	@OneToOne(() => User, { nullable: true })
 	@JoinColumn()
 	user: User | null;
+
+	@ManyToOne(() => Tenant, { nullable: true })
+	@JoinColumn({ name: 'tenant_id' })
+	tenant: Tenant | null;
 
 	@ManyToMany(
 		() => Service,

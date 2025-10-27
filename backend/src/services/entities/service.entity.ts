@@ -2,12 +2,15 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
+	JoinColumn,
 	JoinTable,
 	ManyToMany,
+	ManyToOne,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
 import { Specialist } from '../../specialist/entities/specialist.entity';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 
 @Entity('services')
 export class Service {
@@ -22,6 +25,10 @@ export class Service {
 
 	@Column({ type: 'decimal', precision: 10, scale: 2 })
 	price: number;
+
+	@ManyToOne(() => Tenant, { nullable: true })
+	@JoinColumn({ name: 'tenant_id' })
+	tenant: Tenant | null;
 
 	@ManyToMany(
 		() => Specialist,

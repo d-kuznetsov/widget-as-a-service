@@ -8,6 +8,7 @@ import {
 	UpdateDateColumn,
 } from 'typeorm';
 import { Specialist } from '../../specialist/entities/specialist.entity';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 
 @Entity('exceptions')
 export class Exception {
@@ -29,6 +30,10 @@ export class Exception {
 	@ManyToOne(() => Specialist)
 	@JoinColumn({ name: 'specialist_id' })
 	specialist: Specialist;
+
+	@ManyToOne(() => Tenant, { nullable: true })
+	@JoinColumn({ name: 'tenant_id' })
+	tenant: Tenant | null;
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;

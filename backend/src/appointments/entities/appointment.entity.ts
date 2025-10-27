@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Service } from '../../services/entities/service.entity';
 import { Specialist } from '../../specialist/entities/specialist.entity';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 import { User } from '../../users/user.entity';
 
 export enum AppointmentStatus {
@@ -49,6 +50,10 @@ export class Appointment {
 	@ManyToOne(() => Service)
 	@JoinColumn({ name: 'service_id' })
 	service: Service;
+
+	@ManyToOne(() => Tenant, { nullable: true })
+	@JoinColumn({ name: 'tenant_id' })
+	tenant: Tenant | null;
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;
