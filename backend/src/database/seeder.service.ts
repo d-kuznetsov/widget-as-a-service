@@ -2,11 +2,19 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { Appointment } from '../appointments/entities/appointment.entity';
 import { Role } from '../roles/role.entity';
+import { Service } from '../services/entities/service.entity';
+import { Specialist } from '../specialist/entities/specialist.entity';
 import { User } from '../users/user.entity';
+import { WorkingHours } from '../working-hours/entities/working-hours.entity';
 import { getSeedConfig } from './seed-config';
+import { appointmentsSeedData } from './seed-data/appointments.seed';
 import { rolesSeedData } from './seed-data/roles.seed';
+import { servicesSeedData } from './seed-data/services.seed';
+import { specialistsSeedData } from './seed-data/specialists.seed';
 import { usersSeedData } from './seed-data/users.seed';
+import { workingHoursSeedData } from './seed-data/working-hours.seed';
 
 @Injectable()
 export class SeederService {
@@ -16,7 +24,15 @@ export class SeederService {
 		@InjectRepository(Role)
 		private readonly roleRepository: Repository<Role>,
 		@InjectRepository(User)
-		private readonly userRepository: Repository<User>
+		private readonly userRepository: Repository<User>,
+		@InjectRepository(Service)
+		private readonly serviceRepository: Repository<Service>,
+		@InjectRepository(Specialist)
+		private readonly specialistRepository: Repository<Specialist>,
+		@InjectRepository(WorkingHours)
+		private readonly workingHoursRepository: Repository<WorkingHours>,
+		@InjectRepository(Appointment)
+		private readonly appointmentRepository: Repository<Appointment>
 	) {}
 
 	async seed(): Promise<void> {
@@ -36,6 +52,22 @@ export class SeederService {
 
 			if (config.users) {
 				await this.seedUsers();
+			}
+
+			if (config.services) {
+				await this.seedServices();
+			}
+
+			if (config.specialists) {
+				await this.seedSpecialists();
+			}
+
+			if (config.workingHours) {
+				await this.seedWorkingHours();
+			}
+
+			if (config.appointments) {
+				await this.seedAppointments();
 			}
 
 			this.logger.log('Database seeding completed successfully!');
@@ -105,11 +137,170 @@ export class SeederService {
 		}
 	}
 
+	private async seedServices(): Promise<void> {
+		this.logger.log('Seeding services...');
+
+		for (const serviceData of servicesSeedData) {
+			const existingService = await this.serviceRepository.findOne({
+				where: { name: serviceData.name },
+			});
+
+			if (!existingService) {
+				const service = this.serviceRepository.create(serviceData);
+				await this.serviceRepository.save(service);
+				this.logger.log(`Created service: ${serviceData.name}`);
+			} else {
+				this.logger.log(`Service already exists: ${serviceData.name}`);
+			}
+		}
+	}
+
+	private async seedSpecialists(): Promise<void> {
+		this.logger.log('Seeding specialists...');
+
+		for (const specialistData of specialistsSeedData) {
+			const existingSpecialist = await this.specialistRepository.findOne({
+				where: { name: specialistData.name },
+			});
+
+			if (!existingSpecialist) {
+				let user: User | null = null;
+				if (specialistData.username) {
+					user = await this.userRepository.findOne({
+						where: { username: specialistData.username },
+					});
+				}
+
+				const specialist = this.specialistRepository.create({
+					name: specialistData.name,
+					description: specialistData.description,
+					user,
+				});
+
+				await this.specialistRepository.save(specialist);
+				this.logger.log(`Created specialist: ${specialistData.name}`);
+			} else {
+				this.logger.log(`Specialist already exists: ${specialistData.name}`);
+			}
+		}
+	}
+
+	private async seedWorkingHours(): Promise<void> {
+		this.logger.log('Seeding working hours...');
+
+		for (const workingHoursData of workingHoursSeedData) {
+			const specialist = await this.specialistRepository.findOne({
+				where: { name: workingHoursData.specialistName },
+			});
+
+			if (!specialist) {
+				this.logger.warn(
+					`Specialist not found: ${workingHoursData.specialistName}`
+				);
+				continue;
+			}
+
+			const existingWorkingHours = await this.workingHoursRepository.findOne({
+				where: {
+					specialist: { id: specialist.id },
+					dayOfWeek: workingHoursData.dayOfWeek,
+				},
+			});
+
+			if (!existingWorkingHours) {
+				const workingHours = this.workingHoursRepository.create({
+					dayOfWeek: workingHoursData.dayOfWeek,
+					startTime: workingHoursData.startTime,
+					endTime: workingHoursData.endTime,
+					isActive: workingHoursData.isActive,
+					specialist,
+				});
+
+				await this.workingHoursRepository.save(workingHours);
+				this.logger.log(
+					`Created working hours for ${workingHoursData.specialistName} on ${workingHoursData.dayOfWeek}`
+				);
+			} else {
+				this.logger.log(
+					`Working hours already exist for ${workingHoursData.specialistName} on ${workingHoursData.dayOfWeek}`
+				);
+			}
+		}
+	}
+
+	private async seedAppointments(): Promise<void> {
+		this.logger.log('Seeding appointments...');
+
+		for (const appointmentData of appointmentsSeedData) {
+			const user = await this.userRepository.findOne({
+				where: { email: appointmentData.userEmail },
+			});
+
+			const specialist = await this.specialistRepository.findOne({
+				where: { name: appointmentData.specialistName },
+			});
+
+			const service = await this.serviceRepository.findOne({
+				where: { name: appointmentData.serviceName },
+			});
+
+			if (!user) {
+				this.logger.warn(`User not found: ${appointmentData.userEmail}`);
+				continue;
+			}
+
+			if (!specialist) {
+				this.logger.warn(
+					`Specialist not found: ${appointmentData.specialistName}`
+				);
+				continue;
+			}
+
+			if (!service) {
+				this.logger.warn(`Service not found: ${appointmentData.serviceName}`);
+				continue;
+			}
+
+			const existingAppointment = await this.appointmentRepository.findOne({
+				where: {
+					user: { id: user.id },
+					specialist: { id: specialist.id },
+					startTime: new Date(appointmentData.startTime),
+				},
+			});
+
+			if (!existingAppointment) {
+				const appointment = this.appointmentRepository.create({
+					startTime: new Date(appointmentData.startTime),
+					endTime: new Date(appointmentData.endTime),
+					status: appointmentData.status,
+					comment: appointmentData.comment,
+					user,
+					specialist,
+					service,
+				});
+
+				await this.appointmentRepository.save(appointment);
+				this.logger.log(
+					`Created appointment for ${appointmentData.userEmail} with ${appointmentData.specialistName}`
+				);
+			} else {
+				this.logger.log(
+					`Appointment already exists for ${appointmentData.userEmail} with ${appointmentData.specialistName}`
+				);
+			}
+		}
+	}
+
 	async clearDatabase(): Promise<void> {
 		this.logger.log('Clearing database...');
 
 		// Clear in reverse order due to foreign key constraints
 		// Use clear() method instead of delete({}) for clearing all records
+		await this.appointmentRepository.clear();
+		await this.workingHoursRepository.clear();
+		await this.specialistRepository.clear();
+		await this.serviceRepository.clear();
 		await this.userRepository.clear();
 		await this.roleRepository.clear();
 
