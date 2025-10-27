@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ROLES } from '../roles/role.constants';
 import { User } from '../users/user.entity';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -13,16 +18,33 @@ export class TenantService {
 		private readonly tenantRepository: Repository<Tenant>
 	) {}
 
-	async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
-		const owner = await this.tenantRepository.manager.findOne(User, {
-			where: { id: createTenantDto.ownerId },
+	private async validateTenantAdminRole(userEmail: string): Promise<User> {
+		const user = await this.tenantRepository.manager.findOne(User, {
+			where: { email: userEmail },
+			relations: ['roles'],
 		});
 
-		if (!owner) {
-			throw new NotFoundException(
-				`User with ID ${createTenantDto.ownerId} not found`
+		if (!user) {
+			throw new NotFoundException(`User with email ${userEmail} not found`);
+		}
+		const hasTenantAdminRole = user.roles.some(
+			(role) => role.name === ROLES.TENANT_ADMIN
+		);
+
+		if (!hasTenantAdminRole) {
+			throw new BadRequestException(
+				`User with email ${userEmail} must have the '${ROLES.TENANT_ADMIN}' role to be a tenant owner`
 			);
 		}
+
+		return user;
+	}
+
+	async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
+		// Validate that the owner has tenant_admin role and get the user
+		const owner = await this.validateTenantAdminRole(
+			createTenantDto.ownerEmail
+		);
 
 		const tenant = this.tenantRepository.create({
 			name: createTenantDto.name,
@@ -61,13 +83,12 @@ export class TenantService {
 		if (updateTenantDto.address) {
 			tenant.address = updateTenantDto.address;
 		}
-		if (updateTenantDto.ownerId) {
-			const owner = await this.tenantRepository.manager.findOne(User, {
-				where: { id: updateTenantDto.ownerId },
-			});
-			if (owner) {
-				tenant.owner = owner;
-			}
+		if (updateTenantDto.ownerEmail) {
+			// Validate that the new owner has tenant_admin role and get the user
+			const owner = await this.validateTenantAdminRole(
+				updateTenantDto.ownerEmail
+			);
+			tenant.owner = owner;
 		}
 
 		return await this.tenantRepository.save(tenant);
