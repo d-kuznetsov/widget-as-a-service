@@ -7,22 +7,34 @@ export interface UserSeedData {
 
 export const usersSeedData: UserSeedData[] = [
 	{
-		username: 'admin',
-		email: 'admin@example.com',
+		username: 'super_admin',
+		email: 'superadmin@example.com',
 		password: process.env.ADMIN_PASSWORD || 'SecureAdminPassword123!',
-		roleNames: ['admin'],
+		roleNames: ['super_admin'],
+	},
+	{
+		username: 'tenant_admin',
+		email: 'tenantadmin@example.com',
+		password: 'tenant123',
+		roleNames: ['tenant_admin'],
+	},
+	{
+		username: 'dr_smith',
+		email: 'dr.smith@example.com',
+		password: 'specialist123',
+		roleNames: ['specialist'],
+	},
+	{
+		username: 'dr_johnson',
+		email: 'dr.johnson@example.com',
+		password: 'specialist456',
+		roleNames: ['specialist'],
 	},
 	{
 		username: 'john_doe',
 		email: 'john.doe@example.com',
 		password: 'user123',
 		roleNames: ['user'],
-	},
-	{
-		username: 'jane_moderator',
-		email: 'jane.moderator@example.com',
-		password: 'mod123',
-		roleNames: ['moderator'],
 	},
 	{
 		username: 'alice_smith',

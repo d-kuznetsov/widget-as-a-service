@@ -1,18 +1,19 @@
 export const rolesSeedData = [
 	{
-		name: 'admin',
-		description: 'Administrator with full access to all features',
+		name: 'super_admin',
+		description:
+			'Super administrator with full system access across all tenants',
+	},
+	{
+		name: 'tenant_admin',
+		description: 'Tenant administrator with full access within their tenant',
+	},
+	{
+		name: 'specialist',
+		description: 'Specialist with access to manage appointments and services',
 	},
 	{
 		name: 'user',
-		description: 'Regular user with basic access',
-	},
-	{
-		name: 'moderator',
-		description: 'Moderator with limited admin access',
-	},
-	{
-		name: 'guest',
-		description: 'Guest user with read-only access',
+		description: 'Regular user with basic access to book appointments',
 	},
 ];
