@@ -14,6 +14,8 @@ import { Service } from './services/entities/service.entity';
 import { ServiceModule } from './services/service.module';
 import { Specialist } from './specialist/entities/specialist.entity';
 import { SpecialistModule } from './specialist/specialist.module';
+import { Tenant } from './tenant/entities/tenant.entity';
+import { TenantModule } from './tenant/tenant.module';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
 import { WorkingHours } from './working-hours/entities/working-hours.entity';
@@ -27,6 +29,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		User,
 		Specialist,
 		Service,
+		Tenant,
 		Appointment,
 		WorkingHours,
 		Exception,
@@ -46,6 +49,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		RolesModule,
 		SpecialistModule,
 		ServiceModule,
+		TenantModule,
 		AppointmentsModule,
 		WorkingHoursModule,
 		ExceptionModule,

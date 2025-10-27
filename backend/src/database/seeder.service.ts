@@ -7,6 +7,7 @@ import { Exception } from '../exceptions/entities/exception.entity';
 import { Role } from '../roles/role.entity';
 import { Service } from '../services/entities/service.entity';
 import { Specialist } from '../specialist/entities/specialist.entity';
+import { Tenant } from '../tenant/entities/tenant.entity';
 import { User } from '../users/user.entity';
 import { WorkingHours } from '../working-hours/entities/working-hours.entity';
 import { getSeedConfig } from './seed-config';
@@ -15,6 +16,7 @@ import { exceptionsSeedData } from './seed-data/exceptions.seed';
 import { rolesSeedData } from './seed-data/roles.seed';
 import { servicesSeedData } from './seed-data/services.seed';
 import { specialistsSeedData } from './seed-data/specialists.seed';
+import { tenantsSeedData } from './seed-data/tenants.seed';
 import { usersSeedData } from './seed-data/users.seed';
 import { workingHoursSeedData } from './seed-data/working-hours.seed';
 
@@ -36,7 +38,9 @@ export class SeederService {
 		@InjectRepository(Appointment)
 		private readonly appointmentRepository: Repository<Appointment>,
 		@InjectRepository(Exception)
-		private readonly exceptionRepository: Repository<Exception>
+		private readonly exceptionRepository: Repository<Exception>,
+		@InjectRepository(Tenant)
+		private readonly tenantRepository: Repository<Tenant>
 	) {}
 
 	async seed(): Promise<void> {
@@ -56,6 +60,10 @@ export class SeederService {
 
 			if (config.users) {
 				await this.seedUsers();
+			}
+
+			if (config.tenants) {
+				await this.seedTenants();
 			}
 
 			if (config.services) {
@@ -141,6 +149,41 @@ export class SeederService {
 				);
 			} else {
 				this.logger.log(`User already exists: ${userData.username}`);
+			}
+		}
+	}
+
+	private async seedTenants(): Promise<void> {
+		this.logger.log('Seeding tenants...');
+
+		for (const tenantData of tenantsSeedData) {
+			const existingTenant = await this.tenantRepository.findOne({
+				where: { name: tenantData.name },
+			});
+
+			if (!existingTenant) {
+				// Find owner by username
+				const owner = await this.userRepository.findOne({
+					where: { username: tenantData.ownerUsername },
+				});
+
+				if (!owner) {
+					this.logger.warn(`Owner not found: ${tenantData.ownerUsername}`);
+					continue;
+				}
+
+				const tenant = this.tenantRepository.create({
+					name: tenantData.name,
+					address: tenantData.address,
+					owner,
+				});
+
+				await this.tenantRepository.save(tenant);
+				this.logger.log(
+					`Created tenant: ${tenantData.name} owned by ${tenantData.ownerUsername}`
+				);
+			} else {
+				this.logger.log(`Tenant already exists: ${tenantData.name}`);
 			}
 		}
 	}
@@ -354,6 +397,7 @@ export class SeederService {
 		await this.workingHoursRepository.clear();
 		await this.specialistRepository.clear();
 		await this.serviceRepository.clear();
+		await this.tenantRepository.clear();
 		await this.userRepository.clear();
 		await this.roleRepository.clear();
 
