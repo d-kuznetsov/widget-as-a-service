@@ -96,6 +96,16 @@ export class TenantService {
 
 	async remove(id: string): Promise<void> {
 		const tenant = await this.findOne(id);
+
+		// Check for linked entities
+		const linkedEntities = await this.checkForLinkedEntities(id);
+
+		if (linkedEntities.length > 0) {
+			throw new BadRequestException(
+				`Cannot delete tenant. It has linked ${linkedEntities.join(', ')}. Please remove these entities first.`
+			);
+		}
+
 		await this.tenantRepository.remove(tenant);
 	}
 
@@ -104,5 +114,53 @@ export class TenantService {
 			where: { owner: { id: ownerId } },
 			relations: ['owner'],
 		});
+	}
+
+	private async checkForLinkedEntities(tenantId: string): Promise<string[]> {
+		const linkedEntities: string[] = [];
+
+		// Check specialists
+		const specialistCount = await this.tenantRepository.manager.count(
+			'Specialist',
+			{
+				where: { tenant: { id: tenantId } },
+			}
+		);
+		if (specialistCount > 0) linkedEntities.push('specialists');
+
+		// Check services
+		const serviceCount = await this.tenantRepository.manager.count('Service', {
+			where: { tenant: { id: tenantId } },
+		});
+		if (serviceCount > 0) linkedEntities.push('services');
+
+		// Check appointments
+		const appointmentCount = await this.tenantRepository.manager.count(
+			'Appointment',
+			{
+				where: { tenant: { id: tenantId } },
+			}
+		);
+		if (appointmentCount > 0) linkedEntities.push('appointments');
+
+		// Check exceptions
+		const exceptionCount = await this.tenantRepository.manager.count(
+			'Exception',
+			{
+				where: { tenant: { id: tenantId } },
+			}
+		);
+		if (exceptionCount > 0) linkedEntities.push('exceptions');
+
+		// Check working hours
+		const workingHoursCount = await this.tenantRepository.manager.count(
+			'WorkingHours',
+			{
+				where: { tenant: { id: tenantId } },
+			}
+		);
+		if (workingHoursCount > 0) linkedEntities.push('working hours');
+
+		return linkedEntities;
 	}
 }
