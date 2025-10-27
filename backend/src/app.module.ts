@@ -35,7 +35,7 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		Exception,
 	],
 	synchronize: true,
-	logging: true,
+	logging: false,
 };
 
 @Module({
