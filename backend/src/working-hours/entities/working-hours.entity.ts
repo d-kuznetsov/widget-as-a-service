@@ -5,6 +5,7 @@ import {
 	JoinColumn,
 	ManyToOne,
 	PrimaryGeneratedColumn,
+	Unique,
 	UpdateDateColumn,
 } from 'typeorm';
 import { Specialist } from '../../specialist/entities/specialist.entity';
@@ -21,6 +22,7 @@ export enum DayOfWeek {
 }
 
 @Entity('working_hours')
+@Unique(['specialist', 'dayOfWeek'])
 export class WorkingHours {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
@@ -45,9 +47,9 @@ export class WorkingHours {
 	@JoinColumn({ name: 'specialist_id' })
 	specialist: Specialist;
 
-	@ManyToOne(() => Tenant, { nullable: true })
+	@ManyToOne(() => Tenant)
 	@JoinColumn({ name: 'tenant_id' })
-	tenant: Tenant | null;
+	tenant: Tenant;
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;
