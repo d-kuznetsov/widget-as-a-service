@@ -36,7 +36,6 @@ export const getSeedConfig = (): SeedConfig => {
 				workingHours: true,
 				appointments: true,
 				exceptions: true,
-
 				clearBeforeSeed: true, // Always clear in test
 			};
 		default:
@@ -44,13 +43,12 @@ export const getSeedConfig = (): SeedConfig => {
 				roles: true,
 				users: true,
 				tenants: true,
-				services: false,
-				specialists: false,
+				services: true,
+				specialists: true,
 				workingHours: false,
 				appointments: false,
 				exceptions: false,
-
-				clearBeforeSeed: false,
+				clearBeforeSeed: true,
 			};
 	}
 };
