@@ -87,7 +87,7 @@ export class WorkingHoursService {
 				},
 			});
 
-			if (existingWorkingHours) {
+			if (existingWorkingHours && existingWorkingHours.id !== workingHours.id) {
 				throw new ConflictException(
 					`Working hours already exist for this specialist on ${updateData.dayOfWeek}`
 				);
