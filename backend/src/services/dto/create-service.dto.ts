@@ -2,9 +2,9 @@ import {
 	IsArray,
 	IsNotEmpty,
 	IsNumber,
+	IsPositive,
 	IsString,
 	IsUUID,
-	Min,
 } from 'class-validator';
 
 export class CreateServiceDto {
@@ -14,13 +14,17 @@ export class CreateServiceDto {
 
 	@IsNotEmpty()
 	@IsNumber()
-	@Min(1)
+	@IsPositive({ message: 'Duration must be greater than 0' })
 	duration: number; // Duration in minutes
 
 	@IsNotEmpty()
 	@IsNumber()
-	@Min(0)
+	@IsPositive({ message: 'Price must be greater than 0' })
 	price: number;
+
+	@IsNotEmpty()
+	@IsUUID('4', { message: 'Tenant ID must be a valid UUID' })
+	tenantId: string;
 
 	@IsNotEmpty()
 	@IsArray()

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Specialist } from '../specialist/entities/specialist.entity';
+import { Tenant } from '../tenant/entities/tenant.entity';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { Service } from './entities/service.entity';
@@ -12,10 +13,23 @@ export class ServiceService {
 		@InjectRepository(Service)
 		private serviceRepository: Repository<Service>,
 		@InjectRepository(Specialist)
-		private specialistRepository: Repository<Specialist>
+		private specialistRepository: Repository<Specialist>,
+		@InjectRepository(Tenant)
+		private tenantRepository: Repository<Tenant>
 	) {}
 
 	async create(createServiceDto: CreateServiceDto): Promise<Service> {
+		// Verify tenant exists
+		const tenant = await this.tenantRepository.findOne({
+			where: { id: createServiceDto.tenantId },
+		});
+
+		if (!tenant) {
+			throw new NotFoundException(
+				`Tenant with ID ${createServiceDto.tenantId} not found`
+			);
+		}
+
 		// Verify all specialists exist
 		const specialists = await this.specialistRepository.findByIds(
 			createServiceDto.specialistIds
@@ -35,6 +49,7 @@ export class ServiceService {
 			name: createServiceDto.name,
 			duration: createServiceDto.duration,
 			price: createServiceDto.price,
+			tenant: tenant,
 			specialists: specialists,
 		});
 
@@ -43,14 +58,14 @@ export class ServiceService {
 
 	async findAll(): Promise<Service[]> {
 		return this.serviceRepository.find({
-			relations: ['specialists'],
+			relations: ['specialists', 'tenant'],
 		});
 	}
 
 	async findOne(id: string): Promise<Service> {
 		const service = await this.serviceRepository.findOne({
 			where: { id },
-			relations: ['specialists'],
+			relations: ['specialists', 'tenant'],
 		});
 
 		if (!service) {
@@ -63,7 +78,7 @@ export class ServiceService {
 	async findBySpecialistId(specialistId: string): Promise<Service[]> {
 		return this.serviceRepository.find({
 			where: { specialists: { id: specialistId } },
-			relations: ['specialists'],
+			relations: ['specialists', 'tenant'],
 		});
 	}
 
@@ -81,6 +96,20 @@ export class ServiceService {
 		}
 		if (updateServiceDto.price !== undefined) {
 			service.price = updateServiceDto.price;
+		}
+		if (updateServiceDto.tenantId !== undefined) {
+			// Verify tenant exists
+			const tenant = await this.tenantRepository.findOne({
+				where: { id: updateServiceDto.tenantId },
+			});
+
+			if (!tenant) {
+				throw new NotFoundException(
+					`Tenant with ID ${updateServiceDto.tenantId} not found`
+				);
+			}
+
+			service.tenant = tenant;
 		}
 		if (updateServiceDto.specialistIds !== undefined) {
 			// Verify all specialists exist
