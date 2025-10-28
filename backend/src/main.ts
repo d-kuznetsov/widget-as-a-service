@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
 	FastifyAdapter,
@@ -10,6 +11,19 @@ async function bootstrap() {
 		AppModule,
 		new FastifyAdapter()
 	);
+
+	// Enable global validation pipe
+	app.useGlobalPipes(
+		new ValidationPipe({
+			whitelist: true, // Strip properties that do not have any decorators
+			forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
+			transform: true, // Automatically transform payloads to DTO instances
+			transformOptions: {
+				enableImplicitConversion: true, // Convert types automatically
+			},
+		})
+	);
+
 	await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();

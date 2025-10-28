@@ -12,7 +12,6 @@ export interface SeedConfig {
 
 export const getSeedConfig = (): SeedConfig => {
 	const env = process.env.NODE_ENV || 'development';
-	console.log('env', env);
 
 	switch (env) {
 		case 'production':

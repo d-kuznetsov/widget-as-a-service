@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Specialist } from '../specialist/entities/specialist.entity';
@@ -17,6 +21,23 @@ export class ServiceService {
 		@InjectRepository(Tenant)
 		private tenantRepository: Repository<Tenant>
 	) {}
+
+	private handleDatabaseError(
+		error: Error & { code?: string },
+		serviceName: string
+	): never {
+		// Handle UNIQUE constraint violation for service name
+		if (
+			error.code === 'SQLITE_CONSTRAINT' &&
+			error.message.includes('UNIQUE constraint failed: services.name')
+		) {
+			throw new ConflictException(
+				`A service with the name "${serviceName}" already exists`
+			);
+		}
+		// Re-throw other database errors
+		throw error;
+	}
 
 	async create(createServiceDto: CreateServiceDto): Promise<Service> {
 		// Verify tenant exists
@@ -53,7 +74,11 @@ export class ServiceService {
 			specialists: specialists,
 		});
 
-		return this.serviceRepository.save(service);
+		try {
+			return await this.serviceRepository.save(service);
+		} catch (error) {
+			this.handleDatabaseError(error, createServiceDto.name);
+		}
 	}
 
 	async findAll(): Promise<Service[]> {
@@ -130,7 +155,11 @@ export class ServiceService {
 			service.specialists = specialists;
 		}
 
-		return this.serviceRepository.save(service);
+		try {
+			return await this.serviceRepository.save(service);
+		} catch (error) {
+			this.handleDatabaseError(error, updateServiceDto.name || service.name);
+		}
 	}
 
 	async remove(id: string): Promise<void> {
