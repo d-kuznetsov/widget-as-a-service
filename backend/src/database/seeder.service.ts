@@ -191,15 +191,30 @@ export class SeederService {
 	private async seedServices(): Promise<void> {
 		this.logger.log('Seeding services...');
 
+		// Get the first available tenant to assign to all services
+		const tenant = await this.tenantRepository.findOne({
+			where: {},
+		});
+
+		if (!tenant) {
+			this.logger.warn('No tenant found. Skipping service seeding.');
+			return;
+		}
+
 		for (const serviceData of servicesSeedData) {
 			const existingService = await this.serviceRepository.findOne({
 				where: { name: serviceData.name },
 			});
 
 			if (!existingService) {
-				const service = this.serviceRepository.create(serviceData);
+				const service = this.serviceRepository.create({
+					...serviceData,
+					tenant,
+				});
 				await this.serviceRepository.save(service);
-				this.logger.log(`Created service: ${serviceData.name}`);
+				this.logger.log(
+					`Created service: ${serviceData.name} for tenant: ${tenant.name}`
+				);
 			} else {
 				this.logger.log(`Service already exists: ${serviceData.name}`);
 			}

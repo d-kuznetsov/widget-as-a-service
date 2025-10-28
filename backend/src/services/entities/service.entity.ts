@@ -26,9 +26,9 @@ export class Service {
 	@Column({ type: 'decimal', precision: 10, scale: 2 })
 	price: number;
 
-	@ManyToOne(() => Tenant, { nullable: true })
+	@ManyToOne(() => Tenant)
 	@JoinColumn({ name: 'tenant_id' })
-	tenant: Tenant | null;
+	tenant: Tenant;
 
 	@ManyToMany(
 		() => Specialist,
