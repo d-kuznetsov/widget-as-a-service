@@ -224,6 +224,13 @@ export class SeederService {
 	private async seedSpecialists(): Promise<void> {
 		this.logger.log('Seeding specialists...');
 
+		// Get all tenants to assign to specialists
+		const tenants = await this.tenantRepository.find();
+		if (tenants.length === 0) {
+			this.logger.warn('No tenants found. Skipping specialist seeding.');
+			return;
+		}
+
 		for (const specialistData of specialistsSeedData) {
 			const existingSpecialist = await this.specialistRepository.findOne({
 				where: { name: specialistData.name },
@@ -237,14 +244,21 @@ export class SeederService {
 					});
 				}
 
+				// Assign a random tenant to each specialist
+				const randomTenant =
+					tenants[Math.floor(Math.random() * tenants.length)];
+
 				const specialist = this.specialistRepository.create({
 					name: specialistData.name,
 					description: specialistData.description,
 					user,
+					tenant: randomTenant,
 				});
 
 				await this.specialistRepository.save(specialist);
-				this.logger.log(`Created specialist: ${specialistData.name}`);
+				this.logger.log(
+					`Created specialist: ${specialistData.name} assigned to tenant: ${randomTenant.name}`
+				);
 			} else {
 				this.logger.log(`Specialist already exists: ${specialistData.name}`);
 			}

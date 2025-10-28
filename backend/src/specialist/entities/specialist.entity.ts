@@ -18,7 +18,7 @@ export class Specialist {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
-	@Column({ length: 255 })
+	@Column({ length: 255, unique: true })
 	name: string;
 
 	@Column({ type: 'text' })
@@ -28,9 +28,9 @@ export class Specialist {
 	@JoinColumn()
 	user: User | null;
 
-	@ManyToOne(() => Tenant, { nullable: true })
+	@ManyToOne(() => Tenant, { nullable: false })
 	@JoinColumn({ name: 'tenant_id' })
-	tenant: Tenant | null;
+	tenant: Tenant;
 
 	@ManyToMany(
 		() => Service,
