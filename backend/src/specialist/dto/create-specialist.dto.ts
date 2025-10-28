@@ -12,4 +12,8 @@ export class CreateSpecialistDto {
 	@IsOptional()
 	@IsUUID()
 	userId?: string;
+
+	@IsNotEmpty()
+	@IsUUID()
+	tenantId: string;
 }

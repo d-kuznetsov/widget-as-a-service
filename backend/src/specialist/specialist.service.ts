@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Tenant } from '../tenant/entities/tenant.entity';
 import { User } from '../users/user.entity';
 import { CreateSpecialistDto } from './dto/create-specialist.dto';
 import { UpdateSpecialistDto } from './dto/update-specialist.dto';
@@ -12,13 +13,27 @@ export class SpecialistService {
 		@InjectRepository(Specialist)
 		private specialistRepository: Repository<Specialist>,
 		@InjectRepository(User)
-		private userRepository: Repository<User>
+		private userRepository: Repository<User>,
+		@InjectRepository(Tenant)
+		private tenantRepository: Repository<Tenant>
 	) {}
 
 	async create(createSpecialistDto: CreateSpecialistDto): Promise<Specialist> {
+		// Fetch and validate tenant
+		const tenant = await this.tenantRepository.findOne({
+			where: { id: createSpecialistDto.tenantId },
+		});
+
+		if (!tenant) {
+			throw new NotFoundException(
+				`Tenant with ID ${createSpecialistDto.tenantId} not found`
+			);
+		}
+
 		const specialist = this.specialistRepository.create({
 			name: createSpecialistDto.name,
 			description: createSpecialistDto.description,
+			tenant,
 		});
 
 		// If userId is provided, fetch and assign the user
@@ -41,14 +56,14 @@ export class SpecialistService {
 
 	async findAll(): Promise<Specialist[]> {
 		return this.specialistRepository.find({
-			relations: ['user'],
+			relations: ['user', 'tenant'],
 		});
 	}
 
 	async findOne(id: string): Promise<Specialist> {
 		const specialist = await this.specialistRepository.findOne({
 			where: { id },
-			relations: ['user'],
+			relations: ['user', 'tenant'],
 		});
 
 		if (!specialist) {
@@ -69,6 +84,19 @@ export class SpecialistService {
 		}
 		if (updateSpecialistDto.description !== undefined) {
 			specialist.description = updateSpecialistDto.description;
+		}
+		if (updateSpecialistDto.tenantId !== undefined) {
+			const tenant = await this.tenantRepository.findOne({
+				where: { id: updateSpecialistDto.tenantId },
+			});
+
+			if (!tenant) {
+				throw new NotFoundException(
+					`Tenant with ID ${updateSpecialistDto.tenantId} not found`
+				);
+			}
+
+			specialist.tenant = tenant;
 		}
 		if (updateSpecialistDto.userId !== undefined) {
 			if (updateSpecialistDto.userId === null) {
