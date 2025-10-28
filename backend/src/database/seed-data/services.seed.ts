@@ -103,6 +103,6 @@ export const servicesSeedData: ServiceSeedData[] = [
 	{
 		name: 'Consultation',
 		duration: 15,
-		price: 0.0,
+		price: 10.0,
 	},
 ];

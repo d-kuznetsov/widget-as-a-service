@@ -1,3 +1,4 @@
+import { IsPositive } from 'class-validator';
 import {
 	Column,
 	CreateDateColumn,
@@ -17,13 +18,15 @@ export class Service {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
-	@Column({ length: 255 })
+	@Column({ length: 255, unique: true })
 	name: string;
 
 	@Column({ type: 'int' })
+	@IsPositive({ message: 'Duration must be greater than 0' })
 	duration: number; // Duration in minutes
 
 	@Column({ type: 'decimal', precision: 10, scale: 2 })
+	@IsPositive({ message: 'Price must be greater than 0' })
 	price: number;
 
 	@ManyToOne(() => Tenant)
