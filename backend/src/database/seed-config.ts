@@ -12,42 +12,45 @@ export interface SeedConfig {
 
 export const getSeedConfig = (): SeedConfig => {
 	const env = process.env.NODE_ENV || 'development';
+	console.log('env', env);
 
 	switch (env) {
 		case 'production':
 			return {
 				roles: true,
 				users: false, // Don't seed users in production
+				tenants: true,
 				services: true,
 				specialists: true,
 				workingHours: true,
 				appointments: false, // Don't seed appointments in production
 				exceptions: false, // Don't seed exceptions in production
-				tenants: true,
 				clearBeforeSeed: false,
 			};
 		case 'test':
 			return {
 				roles: true,
 				users: true,
+				tenants: true,
 				services: true,
 				specialists: true,
 				workingHours: true,
 				appointments: true,
 				exceptions: true,
-				tenants: true,
+
 				clearBeforeSeed: true, // Always clear in test
 			};
 		default:
 			return {
 				roles: true,
 				users: true,
-				services: true,
-				specialists: true,
-				workingHours: true,
-				appointments: true,
-				exceptions: true,
 				tenants: true,
+				services: false,
+				specialists: false,
+				workingHours: false,
+				appointments: false,
+				exceptions: false,
+
 				clearBeforeSeed: false,
 			};
 	}
