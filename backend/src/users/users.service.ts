@@ -37,86 +37,74 @@ export class UsersService {
 		});
 	}
 
-	async create(
-		username: string,
-		email: string,
-		password: string
-	): Promise<User> {
-		const passwordHash = await bcrypt.hash(password, 10);
-		const user = this.usersRepository.create({
-			username,
-			email,
-			passwordHash,
-		});
-
-		try {
-			return await this.usersRepository.save(user);
-		} catch (error) {
-			if (error instanceof QueryFailedError) {
-				// Check if it's a unique constraint violation
-				if (error.message.includes('UNIQUE constraint failed')) {
-					if (error.message.includes('users.email')) {
-						throw new ConflictException(
-							'A user with this email already exists'
-						);
-					}
-					if (error.message.includes('users.username')) {
-						throw new ConflictException(
-							'A user with this username already exists'
-						);
-					}
-				}
-			}
-			throw error;
-		}
-	}
-
 	async validatePassword(user: User, password: string): Promise<boolean> {
 		return bcrypt.compare(password, user.passwordHash);
 	}
 
-	async assignRole(userId: string, roleName: RoleName): Promise<void> {
-		const user = await this.usersRepository.findOne({
-			where: { id: userId },
-		});
+	async create(
+		username: string,
+		email: string,
+		password: string,
+		roles: RoleName[]
+	): Promise<User> {
+		try {
+			// Validate roles
+			const allValid = roles.every((r) => Object.values(ROLES).includes(r));
+			if (!allValid) {
+				throw new Error('Invalid roles provided');
+			}
 
+			// Create the user with roles preset
+			const passwordHash = await bcrypt.hash(password, 10);
+			const user = this.usersRepository.create({
+				username,
+				email,
+				passwordHash,
+				roles,
+			});
+
+			return await this.usersRepository.save(user);
+		} catch (error) {
+			// Re-throw ConflictException from create if any
+			if (error instanceof ConflictException) {
+				throw error;
+			}
+			throw error;
+		}
+	}
+
+	async update(
+		id: string,
+		updates: Partial<{
+			username: string;
+			email: string;
+			password: string;
+			isActive: boolean;
+			roles: RoleName[];
+		}>
+	): Promise<User> {
+		const user = await this.usersRepository.findOne({ where: { id } });
 		if (!user) {
 			throw new Error('User not found');
 		}
 
-		// Check if user already has this role
-		if (!user.roles.includes(roleName)) {
-			user.roles.push(roleName);
-			await this.usersRepository.save(user);
-		}
-	}
-
-	async createWithRole(
-		username: string,
-		email: string,
-		password: string,
-		roleName: RoleName
-	): Promise<User> {
-		try {
-			// Create the user first
-			const user = await this.create(username, email, password);
-
-			// Validate the role name
-			if (!Object.values(ROLES).includes(roleName)) {
-				throw new Error(`Invalid role '${roleName}'`);
+		if (updates.username !== undefined) user.username = updates.username;
+		if (updates.email !== undefined) user.email = updates.email;
+		if (updates.isActive !== undefined) user.isActive = updates.isActive;
+		if (updates.roles !== undefined) {
+			// Validate roles if provided
+			const allValid = updates.roles.every((r) =>
+				Object.values(ROLES).includes(r)
+			);
+			if (!allValid) {
+				throw new Error('Invalid roles provided');
 			}
-
-			// Assign the role to the user
-			await this.assignRole(user.id, roleName);
-
-			return user;
-		} catch (error) {
-			// Re-throw ConflictException from create method
-			if (error instanceof ConflictException) {
-				throw error;
-			}
-			// Re-throw other errors
-			throw error;
+			user.roles = updates.roles;
 		}
+		if (updates.password !== undefined) {
+			user.passwordHash = await bcrypt.hash(updates.password, 10);
+		}
+
+		return this.usersRepository.save(user);
 	}
 }

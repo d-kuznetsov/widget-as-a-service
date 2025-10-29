@@ -1,4 +1,6 @@
 import {
+	ArrayNotEmpty,
+	IsArray,
 	IsEmail,
 	IsEnum,
 	IsNotEmpty,
@@ -7,7 +9,7 @@ import {
 } from 'class-validator';
 import { ROLES, type RoleName } from '../../roles/role.constants';
 
-export class CreateUserWithRoleDto {
+export class CreateUserDto {
 	@IsNotEmpty()
 	@IsString()
 	@MinLength(3)
@@ -22,7 +24,8 @@ export class CreateUserWithRoleDto {
 	@MinLength(6)
 	password: string;
 
-	@IsNotEmpty()
-	@IsEnum(Object.values(ROLES))
-	roleName: RoleName;
+	@IsArray()
+	@ArrayNotEmpty()
+	@IsEnum(Object.values(ROLES), { each: true })
+	roles: RoleName[];
 }
