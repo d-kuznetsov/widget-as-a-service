@@ -8,7 +8,6 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { Exception } from './exceptions/entities/exception.entity';
 import { ExceptionModule } from './exceptions/exception.module';
-import { RolesModule } from './roles/roles.module';
 import { Service } from './services/entities/service.entity';
 import { ServiceModule } from './services/service.module';
 import { Specialist } from './specialist/entities/specialist.entity';
@@ -44,7 +43,6 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 		DatabaseModule,
 		AuthModule,
 		UsersModule,
-		RolesModule,
 		SpecialistModule,
 		ServiceModule,
 		TenantModule,
