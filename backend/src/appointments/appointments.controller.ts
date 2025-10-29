@@ -9,6 +9,8 @@ import {
 	Post,
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
+import { AppointmentSlotDto } from './dto/appointment-slot.dto';
+import { AvailabilityRequestDto } from './dto/availability-request.dto';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
@@ -54,5 +56,18 @@ export class AppointmentsController {
 		@Param('specialistId', ParseUUIDPipe) specialistId: string
 	) {
 		return this.appointmentsService.findBySpecialistId(specialistId);
+	}
+
+	@Post('availability')
+	async getAvailability(
+		@Body() availabilityRequest: AvailabilityRequestDto
+	): Promise<AppointmentSlotDto[]> {
+		const targetDate = new Date(availabilityRequest.date);
+		return this.appointmentsService.generateAvailableSlots(
+			availabilityRequest.specialistId,
+			availabilityRequest.serviceId,
+			targetDate,
+			availabilityRequest.slotIntervalMinutes || 15
+		);
 	}
 }
