@@ -1,8 +1,15 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { QueryFailedError, Repository } from 'typeorm';
-import { ROLES, RoleName } from '../roles/role.constants';
+import { Repository } from 'typeorm';
+import { ROLES } from '../roles/role.constants';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
 
 @Injectable()
@@ -41,31 +48,25 @@ export class UsersService {
 		return bcrypt.compare(password, user.passwordHash);
 	}
 
-	async create(
-		username: string,
-		email: string,
-		password: string,
-		roles: RoleName[]
-	): Promise<User> {
+	async create(createUserData: CreateUserDto): Promise<User> {
 		try {
-			// Validate roles
-			const allValid = roles.every((r) => Object.values(ROLES).includes(r));
+			const allValid = createUserData.roles.every((r) =>
+				Object.values(ROLES).includes(r)
+			);
 			if (!allValid) {
-				throw new Error('Invalid roles provided');
+				throw new BadRequestException('Invalid roles provided');
 			}
 
-			// Create the user with roles preset
-			const passwordHash = await bcrypt.hash(password, 10);
+			const passwordHash = await bcrypt.hash(createUserData.password, 10);
 			const user = this.usersRepository.create({
-				username,
-				email,
+				username: createUserData.username,
+				email: createUserData.email,
 				passwordHash,
-				roles,
+				roles: createUserData.roles,
 			});
 
 			return await this.usersRepository.save(user);
 		} catch (error) {
-			// Re-throw ConflictException from create if any
 			if (error instanceof ConflictException) {
 				throw error;
 			}
@@ -73,38 +74,37 @@ export class UsersService {
 		}
 	}
 
-	async update(
-		id: string,
-		updates: Partial<{
-			username: string;
-			email: string;
-			password: string;
-			isActive: boolean;
-			roles: RoleName[];
-		}>
-	): Promise<User> {
+	async update(id: string, updates: UpdateUserDto): Promise<User> {
 		const user = await this.usersRepository.findOne({ where: { id } });
 		if (!user) {
-			throw new Error('User not found');
+			throw new NotFoundException('User not found');
 		}
 
-		if (updates.username !== undefined) user.username = updates.username;
-		if (updates.email !== undefined) user.email = updates.email;
-		if (updates.isActive !== undefined) user.isActive = updates.isActive;
-		if (updates.roles !== undefined) {
-			// Validate roles if provided
-			const allValid = updates.roles.every((r) =>
+		const { password, ...otherUpdates } = updates;
+		if (otherUpdates.roles) {
+			const allValid = otherUpdates.roles.every((r) =>
 				Object.values(ROLES).includes(r)
 			);
 			if (!allValid) {
-				throw new Error('Invalid roles provided');
+				throw new BadRequestException('Invalid roles provided');
 			}
-			user.roles = updates.roles;
-		}
-		if (updates.password !== undefined) {
-			user.passwordHash = await bcrypt.hash(updates.password, 10);
 		}
 
-		return this.usersRepository.save(user);
+		const updatedUser = this.usersRepository.merge(user, otherUpdates);
+
+		if (password) {
+			updatedUser.passwordHash = await bcrypt.hash(password, 10);
+		}
+
+		return this.usersRepository.save(updatedUser);
+	}
+
+	async remove(id: string): Promise<void> {
+		const user = await this.usersRepository.findOne({ where: { id } });
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		await this.usersRepository.remove(user);
 	}
 }
