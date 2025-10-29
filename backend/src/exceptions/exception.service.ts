@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Specialist } from '../specialist/entities/specialist.entity';
+import { Tenant } from '../tenant/entities/tenant.entity';
 import { CreateExceptionDto } from './dto/create-exception.dto';
 import { UpdateExceptionDto } from './dto/update-exception.dto';
 import { Exception } from './entities/exception.entity';
@@ -14,26 +19,36 @@ export class ExceptionService {
 	) {}
 
 	async create(createExceptionDto: CreateExceptionDto): Promise<Exception> {
+		// Check for overlapping exceptions
+		await this.checkForOverlaps(
+			createExceptionDto.specialistId,
+			createExceptionDto.tenantId,
+			createExceptionDto.date,
+			createExceptionDto.startTime,
+			createExceptionDto.endTime
+		);
+
 		const exception = this.exceptionRepository.create({
 			date: new Date(createExceptionDto.date),
 			startTime: createExceptionDto.startTime,
 			endTime: createExceptionDto.endTime,
 			reason: createExceptionDto.reason,
 			specialist: { id: createExceptionDto.specialistId } as Specialist,
+			tenant: { id: createExceptionDto.tenantId } as Tenant,
 		});
 		return this.exceptionRepository.save(exception);
 	}
 
 	async findAll(): Promise<Exception[]> {
 		return this.exceptionRepository.find({
-			relations: ['specialist'],
+			relations: ['specialist', 'tenant'],
 		});
 	}
 
 	async findOne(id: string): Promise<Exception> {
 		const exception = await this.exceptionRepository.findOne({
 			where: { id },
-			relations: ['specialist'],
+			relations: ['specialist', 'tenant'],
 		});
 
 		if (!exception) {
@@ -46,7 +61,7 @@ export class ExceptionService {
 	async findBySpecialist(specialistId: string): Promise<Exception[]> {
 		return this.exceptionRepository.find({
 			where: { specialist: { id: specialistId } },
-			relations: ['specialist'],
+			relations: ['specialist', 'tenant'],
 		});
 	}
 
@@ -57,6 +72,7 @@ export class ExceptionService {
 		return this.exceptionRepository
 			.createQueryBuilder('exception')
 			.leftJoinAndSelect('exception.specialist', 'specialist')
+			.leftJoinAndSelect('exception.tenant', 'tenant')
 			.where('exception.date >= :startDate', { startDate })
 			.andWhere('exception.date <= :endDate', { endDate })
 			.orderBy('exception.date', 'ASC')
@@ -69,6 +85,33 @@ export class ExceptionService {
 		updateExceptionDto: UpdateExceptionDto
 	): Promise<Exception> {
 		const exception = await this.findOne(id);
+
+		// Check for overlapping exceptions if time-related fields are being updated
+		if (
+			updateExceptionDto.date ||
+			updateExceptionDto.startTime ||
+			updateExceptionDto.endTime ||
+			updateExceptionDto.specialistId ||
+			updateExceptionDto.tenantId
+		) {
+			const checkDate =
+				updateExceptionDto.date || exception.date.toISOString().split('T')[0];
+			const checkStartTime =
+				updateExceptionDto.startTime || exception.startTime;
+			const checkEndTime = updateExceptionDto.endTime || exception.endTime;
+			const checkSpecialistId =
+				updateExceptionDto.specialistId || exception.specialist.id;
+			const checkTenantId = updateExceptionDto.tenantId || exception.tenant.id;
+
+			await this.checkForOverlaps(
+				checkSpecialistId,
+				checkTenantId,
+				checkDate,
+				checkStartTime,
+				checkEndTime,
+				id // Exclude current exception from overlap check
+			);
+		}
 
 		// Prepare update data with proper type conversion
 		const updateData: Partial<Exception> = {};
@@ -90,6 +133,11 @@ export class ExceptionService {
 				id: updateExceptionDto.specialistId,
 			} as Specialist;
 		}
+		if (updateExceptionDto.tenantId) {
+			updateData.tenant = {
+				id: updateExceptionDto.tenantId,
+			} as Tenant;
+		}
 
 		Object.assign(exception, updateData);
 		return this.exceptionRepository.save(exception);
@@ -98,5 +146,36 @@ export class ExceptionService {
 	async remove(id: string): Promise<void> {
 		const exception = await this.findOne(id);
 		await this.exceptionRepository.remove(exception);
+	}
+
+	private async checkForOverlaps(
+		specialistId: string,
+		tenantId: string,
+		date: string,
+		startTime: string,
+		endTime: string,
+		excludeId?: string
+	): Promise<void> {
+		const query = this.exceptionRepository
+			.createQueryBuilder('exception')
+			.where('exception.specialist.id = :specialistId', { specialistId })
+			.andWhere('exception.tenant.id = :tenantId', { tenantId })
+			.andWhere('exception.date = :date', { date })
+			.andWhere(
+				'(exception.startTime < :endTime AND exception.endTime > :startTime)',
+				{ startTime, endTime }
+			);
+
+		if (excludeId) {
+			query.andWhere('exception.id != :excludeId', { excludeId });
+		}
+
+		const overlappingExceptions = await query.getMany();
+
+		if (overlappingExceptions.length > 0) {
+			throw new ConflictException(
+				'Exception overlaps with existing exception for the same specialist and tenant on the same date'
+			);
+		}
 	}
 }

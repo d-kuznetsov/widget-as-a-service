@@ -45,9 +45,9 @@ export const getSeedConfig = (): SeedConfig => {
 				tenants: true,
 				services: true,
 				specialists: true,
-				workingHours: false,
-				appointments: false,
+				workingHours: true,
 				exceptions: false,
+				appointments: false,
 				clearBeforeSeed: true,
 			};
 	}

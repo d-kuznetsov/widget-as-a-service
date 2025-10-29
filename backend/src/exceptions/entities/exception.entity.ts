@@ -31,9 +31,9 @@ export class Exception {
 	@JoinColumn({ name: 'specialist_id' })
 	specialist: Specialist;
 
-	@ManyToOne(() => Tenant, { nullable: true })
+	@ManyToOne(() => Tenant, { nullable: false })
 	@JoinColumn({ name: 'tenant_id' })
-	tenant: Tenant | null;
+	tenant: Tenant;
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;
