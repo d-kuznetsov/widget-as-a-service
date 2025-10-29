@@ -37,11 +37,11 @@ export const getSeedConfig = (): SeedConfig => {
 			};
 		default:
 			return {
-				users: true,
-				tenants: true,
-				services: true,
-				specialists: true,
-				workingHours: true,
+				users: false,
+				tenants: false,
+				services: false,
+				specialists: false,
+				workingHours: false,
 				exceptions: false,
 				appointments: false,
 				clearBeforeSeed: true,

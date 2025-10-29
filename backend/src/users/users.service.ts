@@ -57,6 +57,22 @@ export class UsersService {
 				throw new BadRequestException('Invalid roles provided');
 			}
 
+			// Check if username already exists
+			const existingUserByUsername = await this.usersRepository.findOne({
+				where: { username: createUserData.username },
+			});
+			if (existingUserByUsername) {
+				throw new ConflictException('Username already exists');
+			}
+
+			// Check if email already exists
+			const existingUserByEmail = await this.usersRepository.findOne({
+				where: { email: createUserData.email },
+			});
+			if (existingUserByEmail) {
+				throw new ConflictException('Email already exists');
+			}
+
 			const passwordHash = await bcrypt.hash(createUserData.password, 10);
 			const user = this.usersRepository.create({
 				username: createUserData.username,
@@ -67,8 +83,23 @@ export class UsersService {
 
 			return await this.usersRepository.save(user);
 		} catch (error) {
-			if (error instanceof ConflictException) {
+			if (
+				error instanceof ConflictException ||
+				error instanceof BadRequestException
+			) {
 				throw error;
+			}
+			// Handle database constraint violations
+			if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+				if (error.message.includes('username')) {
+					throw new ConflictException('Username already exists');
+				}
+				if (error.message.includes('email')) {
+					throw new ConflictException('Email already exists');
+				}
+				throw new ConflictException(
+					'User with this information already exists'
+				);
 			}
 			throw error;
 		}
