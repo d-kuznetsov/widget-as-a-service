@@ -1,8 +1,10 @@
+import { RoleName } from '../../roles/role.constants';
+
 export interface UserSeedData {
 	username: string;
 	email: string;
 	password: string;
-	roleNames: string[];
+	roleNames: RoleName[];
 }
 
 export const usersSeedData: UserSeedData[] = [

@@ -21,7 +21,7 @@ export class AuthService {
 		const payload = {
 			sub: user.id,
 			username: user.username,
-			roles: user.roles?.map((role) => role.name) || [],
+			roles: user.roles || [],
 		};
 
 		return {

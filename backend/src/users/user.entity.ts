@@ -3,12 +3,10 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
-	JoinTable,
-	ManyToMany,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
-import { Role } from '../roles/role.entity';
+import { RoleName } from '../roles/role.constants';
 
 @Entity('users')
 export class User {
@@ -27,17 +25,12 @@ export class User {
 	@Column({ name: 'is_active', default: true })
 	isActive: boolean;
 
+	@Column({ type: 'simple-array', default: '' })
+	roles: RoleName[];
+
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;
 
 	@UpdateDateColumn({ name: 'updated_at' })
 	updatedAt: Date;
-
-	@ManyToMany(() => Role)
-	@JoinTable({
-		name: 'user_roles',
-		joinColumn: { name: 'user_id' },
-		inverseJoinColumn: { name: 'role_id' },
-	})
-	roles: Role[];
 }

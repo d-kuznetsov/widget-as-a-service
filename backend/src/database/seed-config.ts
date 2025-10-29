@@ -1,5 +1,4 @@
 export interface SeedConfig {
-	roles: boolean;
 	users: boolean;
 	services: boolean;
 	specialists: boolean;
@@ -16,7 +15,6 @@ export const getSeedConfig = (): SeedConfig => {
 	switch (env) {
 		case 'production':
 			return {
-				roles: true,
 				users: false, // Don't seed users in production
 				tenants: true,
 				services: true,
@@ -28,7 +26,6 @@ export const getSeedConfig = (): SeedConfig => {
 			};
 		case 'test':
 			return {
-				roles: true,
 				users: true,
 				tenants: true,
 				services: true,
@@ -40,7 +37,6 @@ export const getSeedConfig = (): SeedConfig => {
 			};
 		default:
 			return {
-				roles: true,
 				users: true,
 				tenants: true,
 				services: true,

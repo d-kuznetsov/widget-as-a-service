@@ -4,7 +4,6 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { Appointment } from '../appointments/entities/appointment.entity';
 import { Exception } from '../exceptions/entities/exception.entity';
-import { Role } from '../roles/role.entity';
 import { Service } from '../services/entities/service.entity';
 import { Specialist } from '../specialist/entities/specialist.entity';
 import { Tenant } from '../tenant/entities/tenant.entity';
@@ -13,7 +12,6 @@ import { WorkingHours } from '../working-hours/entities/working-hours.entity';
 import { getSeedConfig } from './seed-config';
 import { appointmentsSeedData } from './seed-data/appointments.seed';
 import { exceptionsSeedData } from './seed-data/exceptions.seed';
-import { rolesSeedData } from './seed-data/roles.seed';
 import { servicesSeedData } from './seed-data/services.seed';
 import { specialistsSeedData } from './seed-data/specialists.seed';
 import { tenantsSeedData } from './seed-data/tenants.seed';
@@ -25,8 +23,6 @@ export class SeederService {
 	private readonly logger = new Logger(SeederService.name);
 
 	constructor(
-		@InjectRepository(Role)
-		private readonly roleRepository: Repository<Role>,
 		@InjectRepository(User)
 		private readonly userRepository: Repository<User>,
 		@InjectRepository(Service)
@@ -52,10 +48,6 @@ export class SeederService {
 		try {
 			if (config.clearBeforeSeed) {
 				await this.clearDatabase();
-			}
-
-			if (config.roles) {
-				await this.seedRoles();
 			}
 
 			if (config.users) {
@@ -93,24 +85,6 @@ export class SeederService {
 		}
 	}
 
-	private async seedRoles(): Promise<void> {
-		this.logger.log('Seeding roles...');
-
-		for (const roleData of rolesSeedData) {
-			const existingRole = await this.roleRepository.findOne({
-				where: { name: roleData.name },
-			});
-
-			if (!existingRole) {
-				const role = this.roleRepository.create(roleData);
-				await this.roleRepository.save(role);
-				this.logger.log(`Created role: ${roleData.name}`);
-			} else {
-				this.logger.log(`Role already exists: ${roleData.name}`);
-			}
-		}
-	}
-
 	private async seedUsers(): Promise<void> {
 		this.logger.log('Seeding users...');
 
@@ -120,32 +94,17 @@ export class SeederService {
 			});
 
 			if (!existingUser) {
-				// Find roles by names
-				const roles = await this.roleRepository.find({
-					where: userData.roleNames.map((name) => ({ name })),
-				});
-
-				if (roles.length !== userData.roleNames.length) {
-					const foundRoleNames = roles.map((role) => role.name);
-					const missingRoles = userData.roleNames.filter(
-						(name) => !foundRoleNames.includes(name)
-					);
-					this.logger.warn(
-						`Some roles not found for user ${userData.username}: ${missingRoles.join(', ')}`
-					);
-				}
-
 				const passwordHash = await bcrypt.hash(userData.password, 10);
 				const user = this.userRepository.create({
 					username: userData.username,
 					email: userData.email,
 					passwordHash,
-					roles,
+					roles: userData.roleNames,
 				});
 
 				await this.userRepository.save(user);
 				this.logger.log(
-					`Created user: ${userData.username} with roles: ${roles.map((r) => r.name).join(', ')}`
+					`Created user: ${userData.username} with roles: ${userData.roleNames.join(', ')}`
 				);
 			} else {
 				this.logger.log(`User already exists: ${userData.username}`);
@@ -428,7 +387,6 @@ export class SeederService {
 		await this.serviceRepository.clear();
 		await this.tenantRepository.clear();
 		await this.userRepository.clear();
-		await this.roleRepository.clear();
 
 		this.logger.log('Database cleared successfully!');
 	}

@@ -1,46 +1,46 @@
 // src/roles/roles.service.ts
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Role } from './role.entity';
+import { ROLES, RoleName } from './role.constants';
+
+export interface RoleInfo {
+	name: RoleName;
+	description: string;
+}
 
 @Injectable()
 export class RolesService {
-	constructor(
-		@InjectRepository(Role)
-		private rolesRepository: Repository<Role>
-	) {}
+	private readonly roleDescriptions: Record<RoleName, string> = {
+		[ROLES.SUPER_ADMIN]:
+			'Super administrator with full system access across all tenants',
+		[ROLES.TENANT_ADMIN]:
+			'Tenant administrator with full access within their tenant',
+		[ROLES.SPECIALIST]:
+			'Specialist with access to manage appointments and services',
+		[ROLES.CLIENT]: 'Client with basic access to book appointments',
+	};
 
-	async findAll(): Promise<Role[]> {
-		return this.rolesRepository.find();
+	async findAll(): Promise<RoleInfo[]> {
+		return Object.values(ROLES).map((name) => ({
+			name,
+			description: this.roleDescriptions[name],
+		}));
 	}
 
-	async findById(id: string): Promise<Role | null> {
-		return this.rolesRepository.findOne({ where: { id } });
-	}
-
-	async findByName(name: string): Promise<Role | null> {
-		return this.rolesRepository.findOne({ where: { name } });
-	}
-
-	async create(name: string, description?: string): Promise<Role> {
-		const role = this.rolesRepository.create({ name, description });
-		return this.rolesRepository.save(role);
-	}
-
-	async update(id: string, name?: string, description?: string): Promise<Role> {
-		const role = await this.rolesRepository.findOne({ where: { id } });
-		if (!role) {
-			throw new Error('Role not found');
+	async findByName(name: string): Promise<RoleInfo | null> {
+		if (Object.values(ROLES).includes(name as RoleName)) {
+			return {
+				name: name as RoleName,
+				description: this.roleDescriptions[name as RoleName],
+			};
 		}
-
-		if (name) role.name = name;
-		if (description !== undefined) role.description = description;
-
-		return this.rolesRepository.save(role);
+		return null;
 	}
 
-	async delete(id: string): Promise<void> {
-		await this.rolesRepository.delete(id);
+	async validateRole(roleName: string): Promise<boolean> {
+		return Object.values(ROLES).includes(roleName as RoleName);
+	}
+
+	async validateRoles(roleNames: string[]): Promise<boolean> {
+		return roleNames.every((role) => this.validateRole(role));
 	}
 }

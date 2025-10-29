@@ -21,15 +21,12 @@ export class TenantService {
 	private async validateTenantAdminRole(userEmail: string): Promise<User> {
 		const user = await this.tenantRepository.manager.findOne(User, {
 			where: { email: userEmail },
-			relations: ['roles'],
 		});
 
 		if (!user) {
 			throw new NotFoundException(`User with email ${userEmail} not found`);
 		}
-		const hasTenantAdminRole = user.roles.some(
-			(role) => role.name === ROLES.TENANT_ADMIN
-		);
+		const hasTenantAdminRole = user.roles.includes(ROLES.TENANT_ADMIN);
 
 		if (!hasTenantAdminRole) {
 			throw new BadRequestException(

@@ -8,7 +8,6 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { Exception } from './exceptions/entities/exception.entity';
 import { ExceptionModule } from './exceptions/exception.module';
-import { Role } from './roles/role.entity';
 import { RolesModule } from './roles/roles.module';
 import { Service } from './services/entities/service.entity';
 import { ServiceModule } from './services/service.module';
@@ -25,7 +24,6 @@ const typeOrmModuleOptions: TypeOrmModuleOptions = {
 	type: 'sqlite',
 	database: process.env.DATABASE_PATH || 'src/database/db.sqlite',
 	entities: [
-		Role,
 		User,
 		Specialist,
 		Service,

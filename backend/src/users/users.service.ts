@@ -2,16 +2,14 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { QueryFailedError, Repository } from 'typeorm';
-import { Role } from '../roles/role.entity';
+import { ROLES, RoleName } from '../roles/role.constants';
 import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectRepository(User)
-		private usersRepository: Repository<User>,
-		@InjectRepository(Role)
-		private rolesRepository: Repository<Role>
+		private usersRepository: Repository<User>
 	) {}
 
 	private readonly userSelectFields: (keyof User)[] = [
@@ -29,7 +27,6 @@ export class UsersService {
 		return this.usersRepository.findOne({
 			select: this.userSelectFields,
 			where: { username },
-			relations: ['roles'],
 		});
 	}
 
@@ -37,7 +34,6 @@ export class UsersService {
 		return this.usersRepository.findOne({
 			select: this.userSelectFields,
 			where: { id },
-			relations: ['roles'],
 		});
 	}
 
@@ -79,10 +75,9 @@ export class UsersService {
 		return bcrypt.compare(password, user.passwordHash);
 	}
 
-	async assignRole(userId: string, roleId: string): Promise<void> {
+	async assignRole(userId: string, roleName: RoleName): Promise<void> {
 		const user = await this.usersRepository.findOne({
 			where: { id: userId },
-			relations: ['roles'],
 		});
 
 		if (!user) {
@@ -90,15 +85,9 @@ export class UsersService {
 		}
 
 		// Check if user already has this role
-		const hasRole = user.roles.some((role) => role.id === roleId);
-		if (!hasRole) {
-			const role = await this.rolesRepository.findOne({
-				where: { id: roleId },
-			});
-			if (role) {
-				user.roles.push(role);
-				await this.usersRepository.save(user);
-			}
+		if (!user.roles.includes(roleName)) {
+			user.roles.push(roleName);
+			await this.usersRepository.save(user);
 		}
 	}
 
@@ -106,23 +95,19 @@ export class UsersService {
 		username: string,
 		email: string,
 		password: string,
-		roleName: string
+		roleName: RoleName
 	): Promise<User> {
 		try {
 			// Create the user first
 			const user = await this.create(username, email, password);
 
-			// Find the specified role
-			const role = await this.rolesRepository.findOne({
-				where: { name: roleName },
-			});
-
-			if (!role) {
-				throw new Error(`Role '${roleName}' not found`);
+			// Validate the role name
+			if (!Object.values(ROLES).includes(roleName)) {
+				throw new Error(`Invalid role '${roleName}'`);
 			}
 
 			// Assign the role to the user
-			await this.assignRole(user.id, role.id);
+			await this.assignRole(user.id, roleName);
 
 			return user;
 		} catch (error) {
