@@ -95,7 +95,10 @@ export class ExceptionService {
 			updateExceptionDto.tenantId
 		) {
 			const checkDate =
-				updateExceptionDto.date || exception.date.toISOString().split('T')[0];
+				updateExceptionDto.date ||
+				(exception.date instanceof Date
+					? exception.date.toISOString().split('T')[0]
+					: exception.date);
 			const checkStartTime =
 				updateExceptionDto.startTime || exception.startTime;
 			const checkEndTime = updateExceptionDto.endTime || exception.endTime;
