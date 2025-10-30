@@ -1,5 +1,4 @@
 import {
-	BadRequestException,
 	ConflictException,
 	Injectable,
 	NotFoundException,
@@ -7,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { ROLES, type RoleName } from '../roles/role.constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
@@ -20,19 +18,7 @@ export class UsersService {
 	) {}
 
 	async create(createUserData: CreateUserDto): Promise<User> {
-		const existsEmail = await this.usersRepository.existsBy({
-			email: createUserData.email,
-		});
-		if (existsEmail) {
-			throw new ConflictException('Email already exists');
-		}
-
-		const existsUsername = await this.usersRepository.existsBy({
-			username: createUserData.username,
-		});
-		if (existsUsername) {
-			throw new ConflictException('Username already exists');
-		}
+		await this.assertUniqueConstraints(createUserData);
 
 		const passwordHash = await bcrypt.hash(createUserData.password, 10);
 		const user = this.usersRepository.create({
@@ -64,6 +50,7 @@ export class UsersService {
 		if (!user) {
 			throw new NotFoundException('User not found');
 		}
+		await this.assertUniqueConstraints(updates);
 
 		const { password, ...otherUpdates } = updates;
 
@@ -76,16 +63,35 @@ export class UsersService {
 		return this.usersRepository.save(updatedUser);
 	}
 
-	async remove(id: string): Promise<void> {
+	async remove(id: string): Promise<User> {
 		const user = await this.usersRepository.findOne({ where: { id } });
 		if (!user) {
 			throw new NotFoundException('User not found');
 		}
 
-		await this.usersRepository.remove(user);
+		return this.usersRepository.remove(user);
 	}
 
 	async validatePassword(user: User, password: string): Promise<boolean> {
 		return bcrypt.compare(password, user.passwordHash);
+	}
+
+	async assertUniqueConstraints(fileds: {
+		username?: string;
+		email?: string;
+	}): Promise<void> {
+		const { username, email } = fileds;
+		if (username) {
+			const existsUsername = await this.usersRepository.existsBy({ username });
+			if (existsUsername) {
+				throw new ConflictException('Username already exists');
+			}
+		}
+		if (email) {
+			const existsEmail = await this.usersRepository.existsBy({ email });
+			if (existsEmail) {
+				throw new ConflictException('Email already exists');
+			}
+		}
 	}
 }
