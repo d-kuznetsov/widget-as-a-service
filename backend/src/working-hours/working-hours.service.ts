@@ -60,13 +60,6 @@ export class WorkingHoursService {
 		return workingHours;
 	}
 
-	async findBySpecialist(specialistId: string): Promise<WorkingHours[]> {
-		return this.workingHoursRepository.find({
-			where: { specialist: { id: specialistId } },
-			relations: ['specialist', 'tenant'],
-		});
-	}
-
 	async update(
 		id: string,
 		updateWorkingHoursDto: UpdateWorkingHoursDto
@@ -113,5 +106,12 @@ export class WorkingHoursService {
 	async remove(id: string): Promise<void> {
 		const workingHours = await this.findOne(id);
 		await this.workingHoursRepository.remove(workingHours);
+	}
+
+	async findBySpecialist(specialistId: string): Promise<WorkingHours[]> {
+		return this.workingHoursRepository.find({
+			where: { specialist: { id: specialistId } },
+			relations: ['specialist', 'tenant'],
+		});
 	}
 }

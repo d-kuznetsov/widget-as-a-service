@@ -22,23 +22,6 @@ export class ServiceService {
 		private tenantRepository: Repository<Tenant>
 	) {}
 
-	private handleDatabaseError(
-		error: Error & { code?: string },
-		serviceName: string
-	): never {
-		// Handle UNIQUE constraint violation for service name
-		if (
-			error.code === 'SQLITE_CONSTRAINT' &&
-			error.message.includes('UNIQUE constraint failed: services.name')
-		) {
-			throw new ConflictException(
-				`A service with the name "${serviceName}" already exists`
-			);
-		}
-		// Re-throw other database errors
-		throw error;
-	}
-
 	async create(createServiceDto: CreateServiceDto): Promise<Service> {
 		// Verify tenant exists
 		const tenant = await this.tenantRepository.findOne({
@@ -98,13 +81,6 @@ export class ServiceService {
 		}
 
 		return service;
-	}
-
-	async findBySpecialistId(specialistId: string): Promise<Service[]> {
-		return this.serviceRepository.find({
-			where: { specialists: { id: specialistId } },
-			relations: ['specialists', 'tenant'],
-		});
 	}
 
 	async update(
@@ -167,6 +143,13 @@ export class ServiceService {
 		await this.serviceRepository.remove(service);
 	}
 
+	async findBySpecialistId(specialistId: string): Promise<Service[]> {
+		return this.serviceRepository.find({
+			where: { specialists: { id: specialistId } },
+			relations: ['specialists', 'tenant'],
+		});
+	}
+
 	async addSpecialistToService(
 		serviceId: string,
 		specialistId: string
@@ -204,5 +187,22 @@ export class ServiceService {
 			(s) => s.id !== specialistId
 		);
 		return this.serviceRepository.save(service);
+	}
+
+	private handleDatabaseError(
+		error: Error & { code?: string },
+		serviceName: string
+	): never {
+		// Handle UNIQUE constraint violation for service name
+		if (
+			error.code === 'SQLITE_CONSTRAINT' &&
+			error.message.includes('UNIQUE constraint failed: services.name')
+		) {
+			throw new ConflictException(
+				`A service with the name "${serviceName}" already exists`
+			);
+		}
+		// Re-throw other database errors
+		throw error;
 	}
 }

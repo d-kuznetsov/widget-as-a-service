@@ -20,23 +20,6 @@ export class TenantService {
 		private readonly userRepository: Repository<User>
 	) {}
 
-	private async findTenantOwner(userId: string): Promise<User> {
-		const user = await this.userRepository.findOne({ where: { id: userId } });
-
-		if (!user) {
-			throw new NotFoundException(`User not found`);
-		}
-		const hasTenantAdminRole = user.roles.includes(ROLES.TENANT_ADMIN);
-
-		if (!hasTenantAdminRole) {
-			throw new BadRequestException(
-				`User must have role '${ROLES.TENANT_ADMIN}' to be a tenant owner`
-			);
-		}
-
-		return user;
-	}
-
 	async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
 		const owner = await this.findTenantOwner(createTenantDto.ownerId);
 
@@ -94,5 +77,22 @@ export class TenantService {
 			where: { owner: { id: ownerId } },
 			relations: ['owner'],
 		});
+	}
+
+	private async findTenantOwner(userId: string): Promise<User> {
+		const user = await this.userRepository.findOne({ where: { id: userId } });
+
+		if (!user) {
+			throw new NotFoundException(`User not found`);
+		}
+		const hasTenantAdminRole = user.roles.includes(ROLES.TENANT_ADMIN);
+
+		if (!hasTenantAdminRole) {
+			throw new BadRequestException(
+				`User must have role '${ROLES.TENANT_ADMIN}' to be a tenant owner`
+			);
+		}
+
+		return user;
 	}
 }

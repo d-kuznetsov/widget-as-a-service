@@ -58,28 +58,6 @@ export class ExceptionService {
 		return exception;
 	}
 
-	async findBySpecialist(specialistId: string): Promise<Exception[]> {
-		return this.exceptionRepository.find({
-			where: { specialist: { id: specialistId } },
-			relations: ['specialist', 'tenant'],
-		});
-	}
-
-	async findByDateRange(
-		startDate: string,
-		endDate: string
-	): Promise<Exception[]> {
-		return this.exceptionRepository
-			.createQueryBuilder('exception')
-			.leftJoinAndSelect('exception.specialist', 'specialist')
-			.leftJoinAndSelect('exception.tenant', 'tenant')
-			.where('exception.date >= :startDate', { startDate })
-			.andWhere('exception.date <= :endDate', { endDate })
-			.orderBy('exception.date', 'ASC')
-			.addOrderBy('exception.startTime', 'ASC')
-			.getMany();
-	}
-
 	async update(
 		id: string,
 		updateExceptionDto: UpdateExceptionDto
@@ -149,6 +127,28 @@ export class ExceptionService {
 	async remove(id: string): Promise<void> {
 		const exception = await this.findOne(id);
 		await this.exceptionRepository.remove(exception);
+	}
+
+	async findBySpecialist(specialistId: string): Promise<Exception[]> {
+		return this.exceptionRepository.find({
+			where: { specialist: { id: specialistId } },
+			relations: ['specialist', 'tenant'],
+		});
+	}
+
+	async findByDateRange(
+		startDate: string,
+		endDate: string
+	): Promise<Exception[]> {
+		return this.exceptionRepository
+			.createQueryBuilder('exception')
+			.leftJoinAndSelect('exception.specialist', 'specialist')
+			.leftJoinAndSelect('exception.tenant', 'tenant')
+			.where('exception.date >= :startDate', { startDate })
+			.andWhere('exception.date <= :endDate', { endDate })
+			.orderBy('exception.date', 'ASC')
+			.addOrderBy('exception.startTime', 'ASC')
+			.getMany();
 	}
 
 	private async checkForOverlaps(
