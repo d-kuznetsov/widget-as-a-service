@@ -1,4 +1,6 @@
 // src/entities/user.entity.ts
+
+import { Exclude } from 'class-transformer';
 import {
 	Column,
 	CreateDateColumn,
@@ -19,7 +21,8 @@ export class User {
 	@Column({ unique: true, length: 100 })
 	email: string;
 
-	@Column({ name: 'password_hash', select: false })
+	@Exclude()
+	@Column({ name: 'password_hash' })
 	passwordHash: string;
 
 	@Column({ name: 'is_active', default: true })

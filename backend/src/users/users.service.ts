@@ -19,31 +19,18 @@ export class UsersService {
 		private usersRepository: Repository<User>
 	) {}
 
-	private readonly userSelectFields: (keyof User)[] = [
-		'id',
-		'username',
-		'email',
-		'passwordHash',
-		'isActive',
-		'createdAt',
-		'updatedAt',
-		'roles',
-	];
-
 	async findAll(): Promise<User[]> {
-		return this.usersRepository.find({ select: this.userSelectFields });
+		return this.usersRepository.find({});
 	}
 
 	async findOne(username: string): Promise<User | null> {
 		return this.usersRepository.findOne({
-			select: this.userSelectFields,
 			where: { username },
 		});
 	}
 
 	async findById(id: string): Promise<User | null> {
 		return this.usersRepository.findOne({
-			select: this.userSelectFields,
 			where: { id },
 		});
 	}
