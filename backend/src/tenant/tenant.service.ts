@@ -15,22 +15,22 @@ import { Tenant } from './entities/tenant.entity';
 export class TenantService {
 	constructor(
 		@InjectRepository(Tenant)
-		private readonly tenantRepository: Repository<Tenant>
+		private readonly tenantRepository: Repository<Tenant>,
+		@InjectRepository(User)
+		private readonly userRepository: Repository<User>
 	) {}
 
-	private async validateTenantAdminRoleById(userId: string): Promise<User> {
-		const user = await this.tenantRepository.manager.findOne(User, {
-			where: { id: userId },
-		});
+	private async findTenantOwner(userId: string): Promise<User> {
+		const user = await this.userRepository.findOne({ where: { id: userId } });
 
 		if (!user) {
-			throw new NotFoundException(`User with ID ${userId} not found`);
+			throw new NotFoundException(`User not found`);
 		}
 		const hasTenantAdminRole = user.roles.includes(ROLES.TENANT_ADMIN);
 
 		if (!hasTenantAdminRole) {
 			throw new BadRequestException(
-				`User with ID ${userId} must have the '${ROLES.TENANT_ADMIN}' role to be a tenant owner`
+				`User must have role '${ROLES.TENANT_ADMIN}' to be a tenant owner`
 			);
 		}
 
@@ -38,17 +38,14 @@ export class TenantService {
 	}
 
 	async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
-		const owner = await this.validateTenantAdminRoleById(
-			createTenantDto.ownerId
-		);
+		const owner = await this.findTenantOwner(createTenantDto.ownerId);
 
 		const tenant = this.tenantRepository.create({
-			name: createTenantDto.name,
-			address: createTenantDto.address,
+			...createTenantDto,
 			owner,
 		});
 
-		return await this.tenantRepository.save(tenant);
+		return this.tenantRepository.save(tenant);
 	}
 
 	async findAll(): Promise<Tenant[]> {
@@ -80,9 +77,7 @@ export class TenantService {
 			tenant.address = updateTenantDto.address;
 		}
 		if (updateTenantDto.ownerId) {
-			const owner = await this.validateTenantAdminRoleById(
-				updateTenantDto.ownerId
-			);
+			const owner = await this.findTenantOwner(updateTenantDto.ownerId);
 			tenant.owner = owner;
 		}
 
