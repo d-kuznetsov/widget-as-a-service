@@ -19,6 +19,30 @@ export class UsersService {
 		private usersRepository: Repository<User>
 	) {}
 
+	async create(createUserData: CreateUserDto): Promise<User> {
+		const existsEmail = await this.usersRepository.existsBy({
+			email: createUserData.email,
+		});
+		if (existsEmail) {
+			throw new ConflictException('Email already exists');
+		}
+
+		const existsUsername = await this.usersRepository.existsBy({
+			username: createUserData.username,
+		});
+		if (existsUsername) {
+			throw new ConflictException('Username already exists');
+		}
+
+		const passwordHash = await bcrypt.hash(createUserData.password, 10);
+		const user = this.usersRepository.create({
+			...createUserData,
+			passwordHash,
+		});
+
+		return this.usersRepository.save(user);
+	}
+
 	async findAll(): Promise<User[]> {
 		return this.usersRepository.find({});
 	}
@@ -35,32 +59,6 @@ export class UsersService {
 		});
 	}
 
-	async create(createUserData: CreateUserDto): Promise<User> {
-		const existsEmail = await this.usersRepository.existsBy({
-			email: createUserData.email,
-		});
-		if (existsEmail) {
-			throw new ConflictException('Email already exists');
-		}
-
-		const existsUsername = await this.usersRepository.existsBy({
-			username: createUserData.username,
-		});
-		if (existsUsername) {
-			throw new ConflictException('Username already exists');
-		}
-
-		this.assertValidRoles(createUserData.roles);
-
-		const passwordHash = await bcrypt.hash(createUserData.password, 10);
-		const user = this.usersRepository.create({
-			...createUserData,
-			passwordHash,
-		});
-
-		return this.usersRepository.save(user);
-	}
-
 	async update(id: string, updates: UpdateUserDto): Promise<User> {
 		const user = await this.usersRepository.findOne({ where: { id } });
 		if (!user) {
@@ -68,9 +66,6 @@ export class UsersService {
 		}
 
 		const { password, ...otherUpdates } = updates;
-		if (otherUpdates.roles) {
-			this.assertValidRoles(otherUpdates.roles);
-		}
 
 		const updatedUser = this.usersRepository.merge(user, otherUpdates);
 
@@ -92,13 +87,5 @@ export class UsersService {
 
 	async validatePassword(user: User, password: string): Promise<boolean> {
 		return bcrypt.compare(password, user.passwordHash);
-	}
-
-	private assertValidRoles(roles: RoleName[]): void {
-		const allRoles = Object.values(ROLES) as RoleName[];
-		const allValid = roles.every((role) => allRoles.includes(role));
-		if (!allValid) {
-			throw new BadRequestException('Invalid roles provided');
-		}
 	}
 }

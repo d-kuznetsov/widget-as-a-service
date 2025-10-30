@@ -6,17 +6,15 @@ import {
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 
-@Catch()
+@Catch(QueryFailedError)
 export class DatabaseExceptionFilter implements ExceptionFilter {
-	catch(exception: any) {
-		if (exception instanceof QueryFailedError) {
-			if (exception?.driverError.errno === 19) {
-				throw new ConflictException(
-					'DB Error: Abort due to constraint violation'
-				);
-			}
-			throw new BadRequestException('DB Error');
+	catch(exception: QueryFailedError) {
+		// @ts-expect-error - driverError is not typed
+		if (exception?.driverError?.errno === 19) {
+			throw new ConflictException(
+				'DB Error: Abort due to constraint violation'
+			);
 		}
-		throw exception;
+		throw new BadRequestException('DB Error');
 	}
 }
