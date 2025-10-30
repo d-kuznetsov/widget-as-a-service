@@ -5,7 +5,6 @@ import {
 	Get,
 	HttpCode,
 	HttpStatus,
-	NotFoundException,
 	Param,
 	ParseUUIDPipe,
 	Patch,
@@ -52,11 +51,7 @@ export class UsersController {
 	@ApiOkResponse({ description: 'User found', type: UserResponseDto })
 	@ApiResponse({ status: 404, description: 'User not found' })
 	async findOneById(@Param('id', ParseUUIDPipe) id: string) {
-		const user = await this.usersService.findById(id);
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
-		return user;
+		return this.usersService.findById(id);
 	}
 
 	@Post()

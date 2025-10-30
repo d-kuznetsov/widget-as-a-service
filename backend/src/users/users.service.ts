@@ -40,9 +40,13 @@ export class UsersService {
 	}
 
 	async findById(id: string): Promise<User | null> {
-		return this.usersRepository.findOne({
+		const user = await this.usersRepository.findOne({
 			where: { id },
 		});
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+		return user;
 	}
 
 	async update(id: string, updates: UpdateUserDto): Promise<User> {
