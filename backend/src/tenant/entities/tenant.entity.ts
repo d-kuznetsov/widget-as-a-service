@@ -17,8 +17,8 @@ export class Tenant {
 	@Column({ length: 255 })
 	name: string;
 
-	@Column({ type: 'text' })
-	address: string;
+	@Column({ type: 'text', nullable: true })
+	address?: string;
 
 	@Column({ length: 50, default: 'UTC' })
 	timezone: string;

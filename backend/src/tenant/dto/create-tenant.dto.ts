@@ -5,9 +5,9 @@ export class CreateTenantDto {
 	@IsString()
 	name: string;
 
-	@IsNotEmpty()
+	@IsOptional()
 	@IsString()
-	address: string;
+	address?: string;
 
 	@IsOptional()
 	@IsString()
