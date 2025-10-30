@@ -35,41 +35,32 @@ export class UsersService {
 		});
 	}
 
-	async validatePassword(user: User, password: string): Promise<boolean> {
-		return bcrypt.compare(password, user.passwordHash);
-	}
-
 	async create(createUserData: CreateUserDto): Promise<User> {
 		try {
-			const allValid = createUserData.roles.every((r) =>
-				Object.values(ROLES).includes(r)
-			);
+			const existsEmail = await this.usersRepository.existsBy({
+				email: createUserData.email,
+			});
+			if (existsEmail) {
+				throw new ConflictException('Email already exists');
+			}
+
+			const existsUsername = await this.usersRepository.existsBy({
+				username: createUserData.username,
+			});
+			if (existsUsername) {
+				throw new ConflictException('Username already exists');
+			}
+
+			const allRoles = Object.values(ROLES);
+			const allValid = createUserData.roles.every((r) => allRoles.includes(r));
 			if (!allValid) {
 				throw new BadRequestException('Invalid roles provided');
 			}
 
-			// Check if username already exists
-			const existingUserByUsername = await this.usersRepository.findOne({
-				where: { username: createUserData.username },
-			});
-			if (existingUserByUsername) {
-				throw new ConflictException('Username already exists');
-			}
-
-			// Check if email already exists
-			const existingUserByEmail = await this.usersRepository.findOne({
-				where: { email: createUserData.email },
-			});
-			if (existingUserByEmail) {
-				throw new ConflictException('Email already exists');
-			}
-
 			const passwordHash = await bcrypt.hash(createUserData.password, 10);
 			const user = this.usersRepository.create({
-				username: createUserData.username,
-				email: createUserData.email,
+				...createUserData,
 				passwordHash,
-				roles: createUserData.roles,
 			});
 
 			return await this.usersRepository.save(user);
@@ -128,5 +119,9 @@ export class UsersService {
 		}
 
 		await this.usersRepository.remove(user);
+	}
+
+	async validatePassword(user: User, password: string): Promise<boolean> {
+		return bcrypt.compare(password, user.passwordHash);
 	}
 }
