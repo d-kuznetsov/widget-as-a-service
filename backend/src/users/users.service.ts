@@ -30,6 +30,10 @@ export class UsersService {
 		'roles',
 	];
 
+	async findAll(): Promise<User[]> {
+		return this.usersRepository.find({ select: this.userSelectFields });
+	}
+
 	async findOne(username: string): Promise<User | null> {
 		return this.usersRepository.findOne({
 			select: this.userSelectFields,

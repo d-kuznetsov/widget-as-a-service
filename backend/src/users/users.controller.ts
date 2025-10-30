@@ -2,8 +2,10 @@ import {
 	Body,
 	Controller,
 	Delete,
+	Get,
 	HttpCode,
 	HttpStatus,
+	NotFoundException,
 	Param,
 	ParseUUIDPipe,
 	Patch,
@@ -27,6 +29,35 @@ import { UsersService } from './users.service';
 @Controller('users')
 export class UsersController {
 	constructor(private readonly usersService: UsersService) {}
+
+	@Get()
+	@ApiOperation({ summary: 'Get all users' })
+	@ApiOkResponse({
+		description: 'List of users',
+		type: UserResponseDto,
+		isArray: true,
+	})
+	async findAll() {
+		return this.usersService.findAll();
+	}
+
+	@Get(':id')
+	@ApiOperation({ summary: 'Get user by id' })
+	@ApiParam({
+		name: 'id',
+		description: 'User ID (UUID)',
+		type: 'string',
+		format: 'uuid',
+	})
+	@ApiOkResponse({ description: 'User found', type: UserResponseDto })
+	@ApiResponse({ status: 404, description: 'User not found' })
+	async findOneById(@Param('id', ParseUUIDPipe) id: string) {
+		const user = await this.usersService.findById(id);
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+		return user;
+	}
 
 	@Post()
 	@HttpCode(HttpStatus.CREATED)
