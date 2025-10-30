@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { ROLES } from '../roles/role.constants';
+import { ROLES, type RoleName } from '../roles/role.constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
@@ -50,11 +50,7 @@ export class UsersService {
 			throw new ConflictException('Username already exists');
 		}
 
-		const allRoles = Object.values(ROLES);
-		const allValid = createUserData.roles.every((r) => allRoles.includes(r));
-		if (!allValid) {
-			throw new BadRequestException('Invalid roles provided');
-		}
+		this.assertValidRoles(createUserData.roles);
 
 		const passwordHash = await bcrypt.hash(createUserData.password, 10);
 		const user = this.usersRepository.create({
@@ -62,7 +58,7 @@ export class UsersService {
 			passwordHash,
 		});
 
-		return await this.usersRepository.save(user);
+		return this.usersRepository.save(user);
 	}
 
 	async update(id: string, updates: UpdateUserDto): Promise<User> {
@@ -73,12 +69,7 @@ export class UsersService {
 
 		const { password, ...otherUpdates } = updates;
 		if (otherUpdates.roles) {
-			const allValid = otherUpdates.roles.every((r) =>
-				Object.values(ROLES).includes(r)
-			);
-			if (!allValid) {
-				throw new BadRequestException('Invalid roles provided');
-			}
+			this.assertValidRoles(otherUpdates.roles);
 		}
 
 		const updatedUser = this.usersRepository.merge(user, otherUpdates);
@@ -101,5 +92,13 @@ export class UsersService {
 
 	async validatePassword(user: User, password: string): Promise<boolean> {
 		return bcrypt.compare(password, user.passwordHash);
+	}
+
+	private assertValidRoles(roles: RoleName[]): void {
+		const allRoles = Object.values(ROLES) as RoleName[];
+		const allValid = roles.every((role) => allRoles.includes(role));
+		if (!allValid) {
+			throw new BadRequestException('Invalid roles provided');
+		}
 	}
 }
