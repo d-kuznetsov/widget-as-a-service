@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateTenantDto {
 	@IsNotEmpty()
@@ -14,6 +14,6 @@ export class CreateTenantDto {
 	timezone?: string;
 
 	@IsNotEmpty()
-	@IsEmail()
-	ownerEmail: string;
+	@IsUUID()
+	ownerId: string;
 }

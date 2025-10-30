@@ -18,19 +18,19 @@ export class TenantService {
 		private readonly tenantRepository: Repository<Tenant>
 	) {}
 
-	private async validateTenantAdminRole(userEmail: string): Promise<User> {
+	private async validateTenantAdminRoleById(userId: string): Promise<User> {
 		const user = await this.tenantRepository.manager.findOne(User, {
-			where: { email: userEmail },
+			where: { id: userId },
 		});
 
 		if (!user) {
-			throw new NotFoundException(`User with email ${userEmail} not found`);
+			throw new NotFoundException(`User with ID ${userId} not found`);
 		}
 		const hasTenantAdminRole = user.roles.includes(ROLES.TENANT_ADMIN);
 
 		if (!hasTenantAdminRole) {
 			throw new BadRequestException(
-				`User with email ${userEmail} must have the '${ROLES.TENANT_ADMIN}' role to be a tenant owner`
+				`User with ID ${userId} must have the '${ROLES.TENANT_ADMIN}' role to be a tenant owner`
 			);
 		}
 
@@ -38,9 +38,8 @@ export class TenantService {
 	}
 
 	async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
-		// Validate that the owner has tenant_admin role and get the user
-		const owner = await this.validateTenantAdminRole(
-			createTenantDto.ownerEmail
+		const owner = await this.validateTenantAdminRoleById(
+			createTenantDto.ownerId
 		);
 
 		const tenant = this.tenantRepository.create({
@@ -80,10 +79,9 @@ export class TenantService {
 		if (updateTenantDto.address) {
 			tenant.address = updateTenantDto.address;
 		}
-		if (updateTenantDto.ownerEmail) {
-			// Validate that the new owner has tenant_admin role and get the user
-			const owner = await this.validateTenantAdminRole(
-				updateTenantDto.ownerEmail
+		if (updateTenantDto.ownerId) {
+			const owner = await this.validateTenantAdminRoleById(
+				updateTenantDto.ownerId
 			);
 			tenant.owner = owner;
 		}
