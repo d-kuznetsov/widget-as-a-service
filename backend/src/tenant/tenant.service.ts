@@ -67,36 +67,26 @@ export class TenantService {
 		return tenant;
 	}
 
-	async update(id: string, updateTenantDto: UpdateTenantDto): Promise<Tenant> {
+	async update(id: string, updates: UpdateTenantDto): Promise<Tenant> {
 		const tenant = await this.findOne(id);
+		const { ownerId, ...otherUpdates } = updates;
 
-		if (updateTenantDto.name) {
-			tenant.name = updateTenantDto.name;
-		}
-		if (updateTenantDto.address) {
-			tenant.address = updateTenantDto.address;
-		}
-		if (updateTenantDto.ownerId) {
-			const owner = await this.findTenantOwner(updateTenantDto.ownerId);
-			tenant.owner = owner;
+		const updatedTenant = this.tenantRepository.merge(tenant, otherUpdates);
+
+		if (ownerId) {
+			const owner = await this.findTenantOwner(ownerId);
+			updatedTenant.owner = owner;
 		}
 
-		return await this.tenantRepository.save(tenant);
+		return this.tenantRepository.save(updatedTenant);
 	}
 
-	async remove(id: string): Promise<void> {
+	async remove(id: string): Promise<Tenant> {
 		const tenant = await this.findOne(id);
-
-		// Check for linked entities
-		const linkedEntities = await this.checkForLinkedEntities(id);
-
-		if (linkedEntities.length > 0) {
-			throw new BadRequestException(
-				`Cannot delete tenant. It has linked ${linkedEntities.join(', ')}. Please remove these entities first.`
-			);
+		if (!tenant) {
+			throw new NotFoundException(`Tenant with ID ${id} not found`);
 		}
-
-		await this.tenantRepository.remove(tenant);
+		return this.tenantRepository.remove(tenant);
 	}
 
 	async findByOwner(ownerId: string): Promise<Tenant[]> {
@@ -104,53 +94,5 @@ export class TenantService {
 			where: { owner: { id: ownerId } },
 			relations: ['owner'],
 		});
-	}
-
-	private async checkForLinkedEntities(tenantId: string): Promise<string[]> {
-		const linkedEntities: string[] = [];
-
-		// Check specialists
-		const specialistCount = await this.tenantRepository.manager.count(
-			'Specialist',
-			{
-				where: { tenant: { id: tenantId } },
-			}
-		);
-		if (specialistCount > 0) linkedEntities.push('specialists');
-
-		// Check services
-		const serviceCount = await this.tenantRepository.manager.count('Service', {
-			where: { tenant: { id: tenantId } },
-		});
-		if (serviceCount > 0) linkedEntities.push('services');
-
-		// Check appointments
-		const appointmentCount = await this.tenantRepository.manager.count(
-			'Appointment',
-			{
-				where: { tenant: { id: tenantId } },
-			}
-		);
-		if (appointmentCount > 0) linkedEntities.push('appointments');
-
-		// Check exceptions
-		const exceptionCount = await this.tenantRepository.manager.count(
-			'Exception',
-			{
-				where: { tenant: { id: tenantId } },
-			}
-		);
-		if (exceptionCount > 0) linkedEntities.push('exceptions');
-
-		// Check working hours
-		const workingHoursCount = await this.tenantRepository.manager.count(
-			'WorkingHours',
-			{
-				where: { tenant: { id: tenantId } },
-			}
-		);
-		if (workingHoursCount > 0) linkedEntities.push('working hours');
-
-		return linkedEntities;
 	}
 }
