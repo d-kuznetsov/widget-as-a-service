@@ -36,55 +36,33 @@ export class UsersService {
 	}
 
 	async create(createUserData: CreateUserDto): Promise<User> {
-		try {
-			const existsEmail = await this.usersRepository.existsBy({
-				email: createUserData.email,
-			});
-			if (existsEmail) {
-				throw new ConflictException('Email already exists');
-			}
-
-			const existsUsername = await this.usersRepository.existsBy({
-				username: createUserData.username,
-			});
-			if (existsUsername) {
-				throw new ConflictException('Username already exists');
-			}
-
-			const allRoles = Object.values(ROLES);
-			const allValid = createUserData.roles.every((r) => allRoles.includes(r));
-			if (!allValid) {
-				throw new BadRequestException('Invalid roles provided');
-			}
-
-			const passwordHash = await bcrypt.hash(createUserData.password, 10);
-			const user = this.usersRepository.create({
-				...createUserData,
-				passwordHash,
-			});
-
-			return await this.usersRepository.save(user);
-		} catch (error) {
-			if (
-				error instanceof ConflictException ||
-				error instanceof BadRequestException
-			) {
-				throw error;
-			}
-			// Handle database constraint violations
-			if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-				if (error.message.includes('username')) {
-					throw new ConflictException('Username already exists');
-				}
-				if (error.message.includes('email')) {
-					throw new ConflictException('Email already exists');
-				}
-				throw new ConflictException(
-					'User with this information already exists'
-				);
-			}
-			throw error;
+		const existsEmail = await this.usersRepository.existsBy({
+			email: createUserData.email,
+		});
+		if (existsEmail) {
+			throw new ConflictException('Email already exists');
 		}
+
+		const existsUsername = await this.usersRepository.existsBy({
+			username: createUserData.username,
+		});
+		if (existsUsername) {
+			throw new ConflictException('Username already exists');
+		}
+
+		const allRoles = Object.values(ROLES);
+		const allValid = createUserData.roles.every((r) => allRoles.includes(r));
+		if (!allValid) {
+			throw new BadRequestException('Invalid roles provided');
+		}
+
+		const passwordHash = await bcrypt.hash(createUserData.password, 10);
+		const user = this.usersRepository.create({
+			...createUserData,
+			passwordHash,
+		});
+
+		return await this.usersRepository.save(user);
 	}
 
 	async update(id: string, updates: UpdateUserDto): Promise<User> {
