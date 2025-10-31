@@ -38,6 +38,7 @@ async function bootstrap() {
 		.setDescription('API documentation for the Widget as a Service application')
 		.setVersion('1.0')
 		.addTag('users', 'User management endpoints')
+		.addTag('working-hours', 'Working hours management endpoints')
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config);

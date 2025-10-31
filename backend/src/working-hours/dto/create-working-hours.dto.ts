@@ -1,10 +1,11 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
 	IsBoolean,
 	IsEnum,
+	IsMilitaryTime,
 	IsNotEmpty,
 	IsOptional,
 	IsString,
-	Validate,
 	ValidationArguments,
 	ValidatorConstraint,
 	ValidatorConstraintInterface,
@@ -32,27 +33,57 @@ export class IsTimeBeforeConstraint implements ValidatorConstraintInterface {
 }
 
 export class CreateWorkingHoursDto {
+	@ApiProperty({
+		description: 'Day of the week for working hours',
+		enum: DayOfWeek,
+		example: DayOfWeek.MONDAY,
+	})
 	@IsEnum(DayOfWeek)
 	@IsNotEmpty()
 	dayOfWeek: DayOfWeek;
 
-	@IsString()
+	@ApiProperty({
+		description: 'Start time of working hours in HH:mm:ss format (24-hour)',
+		example: '09:00:00',
+		pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$',
+	})
 	@IsNotEmpty()
-	@Validate(IsTimeBeforeConstraint, ['endTime'])
+	@IsMilitaryTime()
 	startTime: string;
 
-	@IsString()
+	@ApiProperty({
+		description:
+			'End time of working hours in HH:mm:ss format (24-hour). Must be after start time.',
+		example: '17:00:00',
+		pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$',
+	})
+
 	@IsNotEmpty()
 	endTime: string;
 
+	@ApiPropertyOptional({
+		description: 'Whether the working hours are currently active',
+		default: true,
+		example: true,
+	})
 	@IsOptional()
 	@IsBoolean()
 	isActive?: boolean;
 
+	@ApiProperty({
+		description: 'UUID of the specialist',
+		example: '123e4567-e89b-12d3-a456-426614174000',
+		format: 'uuid',
+	})
 	@IsString()
 	@IsNotEmpty()
 	specialistId: string;
 
+	@ApiProperty({
+		description: 'UUID of the tenant',
+		example: '123e4567-e89b-12d3-a456-426614174001',
+		format: 'uuid',
+	})
 	@IsString()
 	@IsNotEmpty()
 	tenantId: string;

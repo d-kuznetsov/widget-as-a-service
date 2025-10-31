@@ -43,11 +43,11 @@ export class WorkingHours {
 	@Column({ name: 'is_active', default: true })
 	isActive: boolean;
 
-	@ManyToOne(() => Specialist)
+	@ManyToOne(() => Specialist, { onDelete: 'CASCADE' })
 	@JoinColumn({ name: 'specialist_id' })
 	specialist: Specialist;
 
-	@ManyToOne(() => Tenant)
+	@ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
 	@JoinColumn({ name: 'tenant_id' })
 	tenant: Tenant;
 
