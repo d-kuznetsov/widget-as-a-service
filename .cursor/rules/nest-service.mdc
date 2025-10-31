@@ -1,0 +1,6 @@
+---
+description: Nest Service
+alwaysApply: true
+---
+
+- Enforce method order in NestJS service classes. Required order: CRUD methods, other private and helpers methods
