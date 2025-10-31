@@ -23,7 +23,7 @@ export class Tenant {
 	@Column({ length: 50, default: 'UTC' })
 	timezone: string;
 
-	@ManyToOne(() => User, { nullable: false })
+	@ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
 	@JoinColumn({ name: 'owner_id' })
 	owner: User;
 

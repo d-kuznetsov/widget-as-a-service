@@ -22,42 +22,38 @@ export class TenantService {
 
 	async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
 		const owner = await this.findTenantOwner(createTenantDto.ownerId);
-
+		this.checkTenantAdminRole(owner);
 		const tenant = this.tenantRepository.create({
 			...createTenantDto,
 			owner,
 		});
-
 		return this.tenantRepository.save(tenant);
-	}
-
-	async findAll(): Promise<Tenant[]> {
-		return await this.tenantRepository.find({
-			relations: ['owner'],
-		});
 	}
 
 	async findOne(id: string): Promise<Tenant> {
 		const tenant = await this.tenantRepository.findOne({
 			where: { id },
-			relations: ['owner'],
 		});
-
 		if (!tenant) {
 			throw new NotFoundException(`Tenant with ID ${id} not found`);
 		}
-
 		return tenant;
+	}
+
+	findAll(): Promise<Tenant[]> {
+		return this.tenantRepository.find({
+			relations: ['owner'],
+		});
 	}
 
 	async update(id: string, updates: UpdateTenantDto): Promise<Tenant> {
 		const tenant = await this.findOne(id);
 		const { ownerId, ...otherUpdates } = updates;
-
 		const updatedTenant = this.tenantRepository.merge(tenant, otherUpdates);
 
 		if (ownerId) {
 			const owner = await this.findTenantOwner(ownerId);
+			this.checkTenantAdminRole(owner);
 			updatedTenant.owner = owner;
 		}
 
@@ -72,27 +68,21 @@ export class TenantService {
 		return this.tenantRepository.remove(tenant);
 	}
 
-	async findByOwner(ownerId: string): Promise<Tenant[]> {
-		return await this.tenantRepository.find({
-			where: { owner: { id: ownerId } },
-			relations: ['owner'],
-		});
-	}
-
 	private async findTenantOwner(userId: string): Promise<User> {
 		const user = await this.userRepository.findOne({ where: { id: userId } });
 
 		if (!user) {
 			throw new NotFoundException(`User not found`);
 		}
-		const hasTenantAdminRole = user.roles.includes(ROLES.TENANT_ADMIN);
+		return user;
+	}
 
+	checkTenantAdminRole(user: User): void {
+		const hasTenantAdminRole = user.roles.includes(ROLES.TENANT_ADMIN);
 		if (!hasTenantAdminRole) {
 			throw new BadRequestException(
 				`User must have role '${ROLES.TENANT_ADMIN}' to be a tenant owner`
 			);
 		}
-
-		return user;
 	}
 }

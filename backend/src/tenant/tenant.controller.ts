@@ -31,11 +31,6 @@ export class TenantController {
 		return this.tenantService.findOne(id);
 	}
 
-	@Get('owner/:ownerId')
-	findByOwner(@Param('ownerId', ParseUUIDPipe) ownerId: string) {
-		return this.tenantService.findByOwner(ownerId);
-	}
-
 	@Patch(':id')
 	update(
 		@Param('id', ParseUUIDPipe) id: string,
