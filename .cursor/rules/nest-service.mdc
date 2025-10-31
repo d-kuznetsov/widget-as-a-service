@@ -1,6 +1,59 @@
 ---
-description: Nest Service
+description: NestJS Service Example
 alwaysApply: true
 ---
+This rule gives and example how a ordinary nestjs service should look like
 
-- Enforce method order in NestJS service classes. Required order: CRUD methods, other private and helpers methods
+
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Product } from './product.entity';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+
+@Injectable()
+export class ProductService {
+	constructor(
+		@InjectRepository(Product)
+		private readonly productRepo: Repository<Product>,
+	) {}
+
+	// === MAIN METHODS (CRUD) ===
+
+	async create(dto: CreateProductDto): Promise<Product> {
+		const product = this.productRepo.create(dto);
+		return this.productRepo.save(product);
+	}
+
+	async findAll(): Promise<Product[]> {
+		return this.productRepo.find();
+	}
+
+	async findOne(id: number): Promise<Product> {
+		const product = await this.productRepo.findOne({ where: { id } });
+		if (!product) {
+			throw new NotFoundException(`Product with id ${id} not found`);
+		}
+		return product;
+	}
+
+	async update(id: number, dto: UpdateProductDto): Promise<Product> {
+		const product = await this.findOne(id);
+    const updatedProduct = this.productRepo,merge(product, dto)
+		return this.productRepo.save(updatedProduct);
+	}
+
+	async remove(id: number): Promise<void> {
+		const result = await this.productRepo.delete(id);
+		if (result.affected === 0) {
+			throw new NotFoundException(`Product with id ${id} not found`);
+		}
+	}
+
+	// === HELPER METHODS (PRIVATE) ===
+
+	private buildQuery() {
+		return this.productRepo.createQueryBuilder('product');
+	}
+}
