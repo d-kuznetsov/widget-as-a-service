@@ -6,7 +6,6 @@ import {
 	Param,
 	Patch,
 	Post,
-	Put,
 	// UseGuards,
 } from '@nestjs/common';
 // import { AuthGuard } from '../auth/auth.guard';
@@ -45,15 +44,5 @@ export class SpecialistController {
 	@Delete(':id')
 	remove(@Param('id') id: string) {
 		return this.specialistService.remove(id);
-	}
-
-	@Put(':id/assign-user')
-	assignUser(@Param('id') id: string, @Body() body: { userId: string }) {
-		return this.specialistService.assignUser(id, body.userId);
-	}
-
-	@Put(':id/unassign-user')
-	unassignUser(@Param('id') id: string) {
-		return this.specialistService.unassignUser(id);
 	}
 }

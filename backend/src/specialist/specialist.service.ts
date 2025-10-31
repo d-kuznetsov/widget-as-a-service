@@ -46,11 +46,9 @@ export class SpecialistService {
 			where: { id },
 			relations: ['user', 'tenant'],
 		});
-
 		if (!specialist) {
 			throw new NotFoundException(`Specialist with ID ${id} not found`);
 		}
-
 		return specialist;
 	}
 
@@ -60,69 +58,26 @@ export class SpecialistService {
 	): Promise<Specialist> {
 		const specialist = await this.findOne(id);
 
-		if (updateSpecialistDto.name !== undefined) {
-			specialist.name = updateSpecialistDto.name;
-		}
-		if (updateSpecialistDto.description !== undefined) {
-			specialist.description = updateSpecialistDto.description;
-		}
-		if (updateSpecialistDto.tenantId !== undefined) {
-			const tenant = await this.tenantRepository.findOne({
-				where: { id: updateSpecialistDto.tenantId },
-			});
-
-			if (!tenant) {
-				throw new NotFoundException(
-					`Tenant with ID ${updateSpecialistDto.tenantId} not found`
-				);
-			}
-
+		const { tenantId, userId, ...specialistData } = updateSpecialistDto;
+		this.specialistRepository.merge(specialist, specialistData);
+		if (tenantId) {
+			const tenant = await this.findTenant(tenantId);
 			specialist.tenant = tenant;
 		}
-		if (updateSpecialistDto.userId !== undefined) {
-			if (updateSpecialistDto.userId === null) {
-				// Unassign user if null is explicitly provided
-				specialist.user = null;
-			} else {
-				// Assign new user
-				const user = await this.userRepository.findOne({
-					where: { id: updateSpecialistDto.userId },
-				});
-
-				if (!user) {
-					throw new NotFoundException(
-						`User with ID ${updateSpecialistDto.userId} not found`
-					);
-				}
-
-				specialist.user = user;
-			}
+		if (userId) {
+			const user = await this.findUser(userId);
+			specialist.user = user;
 		}
 
 		return this.specialistRepository.save(specialist);
 	}
 
-	async remove(id: string): Promise<void> {
+	async remove(id: string): Promise<Specialist> {
 		const specialist = await this.findOne(id);
-		await this.specialistRepository.remove(specialist);
-	}
-
-	async assignUser(specialistId: string, userId: string): Promise<Specialist> {
-		const specialist = await this.findOne(specialistId);
-		const user = await this.userRepository.findOne({ where: { id: userId } });
-
-		if (!user) {
-			throw new NotFoundException(`User with ID ${userId} not found`);
+		if (!specialist) {
+			throw new NotFoundException(`Specialist with ID ${id} not found`);
 		}
-
-		specialist.user = user;
-		return this.specialistRepository.save(specialist);
-	}
-
-	async unassignUser(specialistId: string): Promise<Specialist> {
-		const specialist = await this.findOne(specialistId);
-		specialist.user = null;
-		return this.specialistRepository.save(specialist);
+		return this.specialistRepository.remove(specialist);
 	}
 
 	async findTenant(tenantId: string): Promise<Tenant> {
