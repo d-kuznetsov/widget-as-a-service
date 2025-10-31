@@ -19,42 +19,23 @@ export class SpecialistService {
 	) {}
 
 	async create(createSpecialistDto: CreateSpecialistDto): Promise<Specialist> {
-		// Fetch and validate tenant
-		const tenant = await this.tenantRepository.findOne({
-			where: { id: createSpecialistDto.tenantId },
-		});
-
-		if (!tenant) {
-			throw new NotFoundException(
-				`Tenant with ID ${createSpecialistDto.tenantId} not found`
-			);
-		}
+		const { tenantId, userId, ...specialistData } = createSpecialistDto;
+		const tenant = await this.findTenant(tenantId);
 
 		const specialist = this.specialistRepository.create({
-			name: createSpecialistDto.name,
-			description: createSpecialistDto.description,
+			...specialistData,
 			tenant,
 		});
 
-		// If userId is provided, fetch and assign the user
-		if (createSpecialistDto.userId) {
-			const user = await this.userRepository.findOne({
-				where: { id: createSpecialistDto.userId },
-			});
-
-			if (!user) {
-				throw new NotFoundException(
-					`User with ID ${createSpecialistDto.userId} not found`
-				);
-			}
-
+		if (userId) {
+			const user = await this.findUser(userId);
 			specialist.user = user;
 		}
 
 		return this.specialistRepository.save(specialist);
 	}
 
-	async findAll(): Promise<Specialist[]> {
+	findAll(): Promise<Specialist[]> {
 		return this.specialistRepository.find({
 			relations: ['user', 'tenant'],
 		});
@@ -142,5 +123,23 @@ export class SpecialistService {
 		const specialist = await this.findOne(specialistId);
 		specialist.user = null;
 		return this.specialistRepository.save(specialist);
+	}
+
+	async findTenant(tenantId: string): Promise<Tenant> {
+		const tenant = await this.tenantRepository.findOne({
+			where: { id: tenantId },
+		});
+		if (!tenant) {
+			throw new NotFoundException(`Tenant with ID ${tenantId} not found`);
+		}
+		return tenant;
+	}
+
+	async findUser(userId: string): Promise<User> {
+		const user = await this.userRepository.findOne({ where: { id: userId } });
+		if (!user) {
+			throw new NotFoundException(`User with ID ${userId} not found`);
+		}
+		return user;
 	}
 }

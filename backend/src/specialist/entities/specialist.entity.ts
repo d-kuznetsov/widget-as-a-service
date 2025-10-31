@@ -28,13 +28,14 @@ export class Specialist {
 	@JoinColumn()
 	user: User | null;
 
-	@ManyToOne(() => Tenant, { nullable: false })
+	@ManyToOne(() => Tenant, { nullable: false, onDelete: 'CASCADE' })
 	@JoinColumn({ name: 'tenant_id' })
 	tenant: Tenant;
 
 	@ManyToMany(
 		() => Service,
-		(service) => service.specialists
+		(service) => service.specialists,
+		{ onDelete: 'CASCADE' }
 	)
 	services: Service[];
 
