@@ -23,19 +23,20 @@ export class Service {
 
 	@Column({ type: 'int' })
 	@IsPositive({ message: 'Duration must be greater than 0' })
-	duration: number; // Duration in minutes
+	duration: number;
 
 	@Column({ type: 'decimal', precision: 10, scale: 2 })
 	@IsPositive({ message: 'Price must be greater than 0' })
 	price: number;
 
-	@ManyToOne(() => Tenant)
+	@ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
 	@JoinColumn({ name: 'tenant_id' })
 	tenant: Tenant;
 
 	@ManyToMany(
 		() => Specialist,
-		(specialist) => specialist.services
+		(specialist) => specialist.services,
+		{ onDelete: 'CASCADE' }
 	)
 	@JoinTable({
 		name: 'service_specialists',

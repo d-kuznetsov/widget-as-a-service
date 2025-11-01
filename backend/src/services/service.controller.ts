@@ -26,13 +26,6 @@ export class ServiceController {
 		return this.serviceService.findAll();
 	}
 
-	@Get('specialist/:specialistId')
-	findBySpecialistId(
-		@Param('specialistId', ParseUUIDPipe) specialistId: string
-	) {
-		return this.serviceService.findBySpecialistId(specialistId);
-	}
-
 	@Get(':id')
 	findOne(@Param('id', ParseUUIDPipe) id: string) {
 		return this.serviceService.findOne(id);
@@ -44,25 +37,6 @@ export class ServiceController {
 		@Body() updateServiceDto: UpdateServiceDto
 	) {
 		return this.serviceService.update(id, updateServiceDto);
-	}
-
-	@Post(':id/specialists/:specialistId')
-	addSpecialistToService(
-		@Param('id', ParseUUIDPipe) serviceId: string,
-		@Param('specialistId', ParseUUIDPipe) specialistId: string
-	) {
-		return this.serviceService.addSpecialistToService(serviceId, specialistId);
-	}
-
-	@Delete(':id/specialists/:specialistId')
-	removeSpecialistFromService(
-		@Param('id', ParseUUIDPipe) serviceId: string,
-		@Param('specialistId', ParseUUIDPipe) specialistId: string
-	) {
-		return this.serviceService.removeSpecialistFromService(
-			serviceId,
-			specialistId
-		);
 	}
 
 	@Delete(':id')

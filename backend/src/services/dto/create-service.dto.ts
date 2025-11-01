@@ -23,11 +23,11 @@ export class CreateServiceDto {
 	price: number;
 
 	@IsNotEmpty()
-	@IsUUID('4', { message: 'Tenant ID must be a valid UUID' })
+	@IsUUID()
 	tenantId: string;
 
 	@IsNotEmpty()
 	@IsArray()
-	@IsUUID('4', { each: true })
+	@IsUUID(undefined, { each: true })
 	specialistIds: string[];
 }
