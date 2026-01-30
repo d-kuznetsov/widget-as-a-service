@@ -17,6 +17,9 @@ importers:
       '@fastify/sensible':
         specifier: ^6.0.0
         version: 6.0.4
+      '@fastify/type-provider-typebox':
+        specifier: ^6.1.0
+        version: 6.1.0(typebox@1.0.80)
       fastify:
         specifier: ^5.0.0
         version: 5.7.2
@@ -26,6 +29,9 @@ importers:
       fastify-plugin:
         specifier: ^5.0.0
         version: 5.1.0
+      typebox:
+        specifier: ^1.0.80
+        version: 1.0.80
     devDependencies:
       '@types/node':
         specifier: ^24.0.8
@@ -85,6 +91,11 @@ packages:
 
   '@fastify/sensible@6.0.4':
     resolution: {integrity: sha512-1vxcCUlPMew6WroK8fq+LVOwbsLtX+lmuRuqpcp6eYqu6vmkLwbKTdBWAZwbeaSgCfW4tzUpTIHLLvTiQQ1BwQ==}
+
+  '@fastify/type-provider-typebox@6.1.0':
+    resolution: {integrity: sha512-k29cOitDRcZhMXVjtRq0+caKxdWoArz7su+dQWGzGWnFG+fSKhevgiZ7nexHWuXOEEQzgJlh6cptIMu69beaTA==}
+    peerDependencies:
+      typebox: ^1.0.13
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -720,6 +731,9 @@ packages:
     resolution: {integrity: sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==}
     engines: {node: '>= 0.6'}
 
+  typebox@1.0.80:
+    resolution: {integrity: sha512-ZeTgC357AxaeAw4HX+ZJRBGxpWQIUVt2FNQC+QDoF3piv4/fRmy8DU9ci8cwSkNCbWT6BIUqEXdcaU8f3ib/Iw==}
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
@@ -834,6 +848,10 @@ snapshots:
       http-errors: 2.0.1
       type-is: 2.0.1
       vary: 1.1.2
+
+  '@fastify/type-provider-typebox@6.1.0(typebox@1.0.80)':
+    dependencies:
+      typebox: 1.0.80
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -1454,6 +1472,8 @@ snapshots:
       content-type: 1.0.5
       media-typer: 1.1.0
       mime-types: 3.0.2
+
+  typebox@1.0.80: {}
 
   typescript@5.9.3: {}
 
