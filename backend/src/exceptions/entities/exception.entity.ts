@@ -27,11 +27,11 @@ export class Exception {
 	@Column({ type: 'text' })
 	reason: string;
 
-	@ManyToOne(() => Specialist)
+	@ManyToOne(() => Specialist, { onDelete: 'CASCADE' })
 	@JoinColumn({ name: 'specialist_id' })
 	specialist: Specialist;
 
-	@ManyToOne(() => Tenant, { nullable: false })
+	@ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
 	@JoinColumn({ name: 'tenant_id' })
 	tenant: Tenant;
 

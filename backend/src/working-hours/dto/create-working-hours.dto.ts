@@ -59,6 +59,7 @@ export class CreateWorkingHoursDto {
 	})
 
 	@IsNotEmpty()
+	@IsMilitaryTime()
 	endTime: string;
 
 	@ApiPropertyOptional({

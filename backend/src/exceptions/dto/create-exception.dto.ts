@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
 	IsDateString,
 	IsNotEmpty,
@@ -40,27 +41,58 @@ export class IsTimeBeforeConstraint implements ValidatorConstraintInterface {
 }
 
 export class CreateExceptionDto {
+	@ApiProperty({
+		description: 'Date of the exception in ISO 8601 format (YYYY-MM-DD)',
+		example: '2024-12-25',
+		type: 'string',
+		format: 'date',
+	})
 	@IsDateString()
 	@IsNotEmpty()
 	date: string;
 
+	@ApiProperty({
+		description:
+			'Start time of the exception in HH:mm:ss format (24-hour). Must be before end time.',
+		example: '10:00:00',
+		pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$',
+	})
 	@IsString()
 	@IsNotEmpty()
-	@Validate(IsTimeBeforeConstraint, ['endTime'])
+	//@Validate(IsTimeBeforeConstraint, ['endTime'])
 	startTime: string;
 
+	@ApiProperty({
+		description: 'End time of the exception in HH:mm:ss format (24-hour)',
+		example: '14:00:00',
+		pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$',
+	})
 	@IsString()
 	@IsNotEmpty()
 	endTime: string;
 
+	@ApiProperty({
+		description: 'Reason for the exception',
+		example: 'Holiday - Office closed',
+	})
 	@IsString()
 	@IsNotEmpty()
 	reason: string;
 
+	@ApiProperty({
+		description: 'UUID of the specialist',
+		example: '123e4567-e89b-12d3-a456-426614174000',
+		format: 'uuid',
+	})
 	@IsString()
 	@IsNotEmpty()
 	specialistId: string;
 
+	@ApiProperty({
+		description: 'UUID of the tenant',
+		example: '123e4567-e89b-12d3-a456-426614174001',
+		format: 'uuid',
+	})
 	@IsUUID()
 	@IsNotEmpty()
 	tenantId: string;

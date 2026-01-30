@@ -15,26 +15,33 @@ import { Exception } from './entities/exception.entity';
 export class ExceptionService {
 	constructor(
 		@InjectRepository(Exception)
-		private exceptionRepository: Repository<Exception>
+		private exceptionRepository: Repository<Exception>,
+		@InjectRepository(Specialist)
+		private specialistRepository: Repository<Specialist>,
+		@InjectRepository(Tenant)
+		private tenantRepository: Repository<Tenant>
 	) {}
 
-	async create(createExceptionDto: CreateExceptionDto): Promise<Exception> {
-		// Check for overlapping exceptions
-		await this.checkForOverlaps(
-			createExceptionDto.specialistId,
-			createExceptionDto.tenantId,
-			createExceptionDto.date,
-			createExceptionDto.startTime,
-			createExceptionDto.endTime
+	async create(dto: CreateExceptionDto): Promise<Exception> {
+		const tenant = await this.findTenant(dto.tenantId);
+		const specialist = await this.findSpecialist(
+			dto.specialistId,
+			dto.tenantId
 		);
 
+		await this.checkForOverlaps({
+			specialistId: dto.specialistId,
+			tenantId: dto.tenantId,
+			date: dto.date,
+			startTime: dto.startTime,
+			endTime: dto.endTime,
+		});
+
 		const exception = this.exceptionRepository.create({
-			date: new Date(createExceptionDto.date),
-			startTime: createExceptionDto.startTime,
-			endTime: createExceptionDto.endTime,
-			reason: createExceptionDto.reason,
-			specialist: { id: createExceptionDto.specialistId } as Specialist,
-			tenant: { id: createExceptionDto.tenantId } as Tenant,
+			...dto,
+			date: new Date(dto.date),
+			specialist: specialist,
+			tenant: tenant,
 		});
 		return this.exceptionRepository.save(exception);
 	}
@@ -58,69 +65,27 @@ export class ExceptionService {
 		return exception;
 	}
 
-	async update(
-		id: string,
-		updateExceptionDto: UpdateExceptionDto
-	): Promise<Exception> {
+	async update(id: string, dto: UpdateExceptionDto): Promise<Exception> {
 		const exception = await this.findOne(id);
+		await this.checkForOverlaps({
+			specialistId: dto.specialistId ?? exception.specialist.id,
+			tenantId: dto.tenantId ?? exception.tenant.id,
+			date: dto.date ?? exception.date.toISOString().split('T')[0],
+			startTime: dto.startTime ?? exception.startTime,
+			endTime: dto.endTime ?? exception.endTime,
+			excludeId: id,
+		});
+		const tenant = await this.findTenant(dto.tenantId ?? exception.tenant.id);
+		const specialist = await this.findSpecialist(
+			dto.specialistId ?? exception.specialist.id,
+			dto.tenantId ?? exception.tenant.id
+		);
 
-		// Check for overlapping exceptions if time-related fields are being updated
-		if (
-			updateExceptionDto.date ||
-			updateExceptionDto.startTime ||
-			updateExceptionDto.endTime ||
-			updateExceptionDto.specialistId ||
-			updateExceptionDto.tenantId
-		) {
-			const checkDate =
-				updateExceptionDto.date ||
-				(exception.date instanceof Date
-					? exception.date.toISOString().split('T')[0]
-					: exception.date);
-			const checkStartTime =
-				updateExceptionDto.startTime || exception.startTime;
-			const checkEndTime = updateExceptionDto.endTime || exception.endTime;
-			const checkSpecialistId =
-				updateExceptionDto.specialistId || exception.specialist.id;
-			const checkTenantId = updateExceptionDto.tenantId || exception.tenant.id;
-
-			await this.checkForOverlaps(
-				checkSpecialistId,
-				checkTenantId,
-				checkDate,
-				checkStartTime,
-				checkEndTime,
-				id // Exclude current exception from overlap check
-			);
-		}
-
-		// Prepare update data with proper type conversion
-		const updateData: Partial<Exception> = {};
-
-		if (updateExceptionDto.date) {
-			updateData.date = new Date(updateExceptionDto.date);
-		}
-		if (updateExceptionDto.startTime) {
-			updateData.startTime = updateExceptionDto.startTime;
-		}
-		if (updateExceptionDto.endTime) {
-			updateData.endTime = updateExceptionDto.endTime;
-		}
-		if (updateExceptionDto.reason) {
-			updateData.reason = updateExceptionDto.reason;
-		}
-		if (updateExceptionDto.specialistId) {
-			updateData.specialist = {
-				id: updateExceptionDto.specialistId,
-			} as Specialist;
-		}
-		if (updateExceptionDto.tenantId) {
-			updateData.tenant = {
-				id: updateExceptionDto.tenantId,
-			} as Tenant;
-		}
-
-		Object.assign(exception, updateData);
+		this.exceptionRepository.merge(exception, {
+			...dto,
+			specialist: specialist,
+			tenant: tenant,
+		});
 		return this.exceptionRepository.save(exception);
 	}
 
@@ -151,26 +116,32 @@ export class ExceptionService {
 			.getMany();
 	}
 
-	private async checkForOverlaps(
-		specialistId: string,
-		tenantId: string,
-		date: string,
-		startTime: string,
-		endTime: string,
-		excludeId?: string
-	): Promise<void> {
+	private async checkForOverlaps(options: {
+		specialistId: string;
+		tenantId: string;
+		date: string;
+		startTime: string;
+		endTime: string;
+		excludeId?: string;
+	}): Promise<void> {
 		const query = this.exceptionRepository
 			.createQueryBuilder('exception')
-			.where('exception.specialist.id = :specialistId', { specialistId })
-			.andWhere('exception.tenant.id = :tenantId', { tenantId })
-			.andWhere('exception.date = :date', { date })
+			.where('exception.specialist.id = :specialistId', {
+				specialistId: options.specialistId,
+			})
+			.andWhere('exception.tenant.id = :tenantId', {
+				tenantId: options.tenantId,
+			})
+			.andWhere('exception.date = :date', { date: options.date })
 			.andWhere(
 				'(exception.startTime < :endTime AND exception.endTime > :startTime)',
-				{ startTime, endTime }
+				{ startTime: options.startTime, endTime: options.endTime }
 			);
 
-		if (excludeId) {
-			query.andWhere('exception.id != :excludeId', { excludeId });
+		if (options.excludeId) {
+			query.andWhere('exception.id != :excludeId', {
+				excludeId: options.excludeId,
+			});
 		}
 
 		const overlappingExceptions = await query.getMany();
@@ -180,5 +151,28 @@ export class ExceptionService {
 				'Exception overlaps with existing exception for the same specialist and tenant on the same date'
 			);
 		}
+	}
+
+	private async findSpecialist(
+		specialistId: string,
+		tenantId: string
+	): Promise<Specialist> {
+		const specialist = await this.specialistRepository.findOne({
+			where: { id: specialistId, tenant: { id: tenantId } },
+		});
+		if (!specialist) {
+			throw new NotFoundException(
+				`Specialist with ID ${specialistId} for tenant ID ${tenantId} not found`
+			);
+		}
+		return specialist;
+	}
+
+	private async findTenant(id: string): Promise<Tenant> {
+		const tenant = await this.tenantRepository.findOne({ where: { id } });
+		if (!tenant) {
+			throw new NotFoundException(`Tenant with ID ${id} not found`);
+		}
+		return tenant;
 	}
 }

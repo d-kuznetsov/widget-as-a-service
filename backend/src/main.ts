@@ -39,6 +39,7 @@ async function bootstrap() {
 		.setVersion('1.0')
 		.addTag('users', 'User management endpoints')
 		.addTag('working-hours', 'Working hours management endpoints')
+		.addTag('exceptions', 'Exception management endpoints')
 		.build();
 
 	const document = SwaggerModule.createDocument(app, config);
