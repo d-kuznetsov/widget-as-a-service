@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import userRoutes from './user.routes';
+import userController from './user.controller';
 
 export async function userModule(fastify: FastifyInstance) {
-	fastify.register(userRoutes, { prefix: '/users' });
+	fastify.register(userController, { prefix: '/users' });
 }
