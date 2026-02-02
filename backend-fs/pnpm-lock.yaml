@@ -23,6 +23,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(@types/pg@8.16.0)(pg@8.18.0)
+      drizzle-typebox:
+        specifier: ^0.3.3
+        version: 0.3.3(@sinclair/typebox@0.34.48)(drizzle-orm@0.45.1(@types/pg@8.16.0)(pg@8.18.0))
       fastify:
         specifier: ^5.0.0
         version: 5.7.2
@@ -440,6 +443,9 @@ packages:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
 
+  '@sinclair/typebox@0.34.48':
+    resolution: {integrity: sha512-kKJTNuK3AQOrgjjotVxMrCn1sUJwM76wMszfq1kdU4uYVJjvEWuFQ6HgvLt4Xz3fSmZlTOxJ/Ie13KnIcWQXFA==}
+
   '@tsconfig/node10@1.0.12':
     resolution: {integrity: sha512-UCYBaeFvM11aU2y3YPZ//O5Rhj+xKyzy7mvcIoAjASbigy8mHMryP5cK7dgjlz2hWxh1g5pLw084E0a/wlUSFQ==}
 
@@ -711,6 +717,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-typebox@0.3.3:
+    resolution: {integrity: sha512-iJpW9K+BaP8+s/ImHxOFVjoZk9G5N/KXFTOpWcFdz9SugAOWv2fyGaH7FmqgdPo+bVNYQW0OOI3U9dkFIVY41w==}
+    peerDependencies:
+      '@sinclair/typebox': '>=0.34.8'
+      drizzle-orm: '>=0.36.0'
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -1548,6 +1560,8 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
+  '@sinclair/typebox@0.34.48': {}
+
   '@tsconfig/node10@1.0.12': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -1709,6 +1723,11 @@ snapshots:
     optionalDependencies:
       '@types/pg': 8.16.0
       pg: 8.18.0
+
+  drizzle-typebox@0.3.3(@sinclair/typebox@0.34.48)(drizzle-orm@0.45.1(@types/pg@8.16.0)(pg@8.18.0)):
+    dependencies:
+      '@sinclair/typebox': 0.34.48
+      drizzle-orm: 0.45.1(@types/pg@8.16.0)(pg@8.18.0)
 
   eastasianwidth@0.2.0: {}
 
