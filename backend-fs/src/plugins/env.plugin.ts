@@ -5,9 +5,8 @@ const schema = {
 	type: 'object',
 	required: ['DATABASE_URL'],
 	properties: {
-		DATABASE_PATH: {
+		DATABASE_URL: {
 			type: 'string',
-			default: 'src/database/db.sqlite',
 		},
 	},
 };
@@ -15,6 +14,7 @@ const schema = {
 const options = {
 	confKey: 'config', // optional, default: 'config'
 	schema: schema,
+	dotenv: true,
 	// data: data // optional, default: process.env
 };
 
@@ -25,7 +25,7 @@ export default fp(async (fastify) => {
 declare module 'fastify' {
 	export interface FastifyInstance {
 		config: {
-			DATABASE_PATH: string;
+			DATABASE_URL: string;
 		};
 	}
 }
