@@ -1,10 +1,24 @@
 import { Type } from 'typebox';
 
-export const createUserSchema = Type.Object({
+export const userCreateSchema = Type.Object({
+	email: Type.String({ format: 'email', maxLength: 255 }),
+	password: Type.String({ minLength: 8, maxLength: 255 }),
+	firstName: Type.String({ minLength: 1, maxLength: 255 }),
+	lastName: Type.String({ minLength: 1, maxLength: 255 }),
+});
+
+export const createUserResponseSchema = Type.Object({
+	id: Type.Number(),
 	email: Type.String({ format: 'email' }),
-	password: Type.String(),
 	firstName: Type.String(),
 	lastName: Type.String(),
 });
 
-export type CreateUserDto = Type.Static<typeof createUserSchema>;
+// export const createUserResponseSchema = Type.Intersect([
+// 	Type.Object({
+// 		id: Type.Number(),
+// 	}),
+// 	Type.Omit(userCreateSchema, ['password']),
+// ]);
+
+export type UserCreateDto = Type.Static<typeof userCreateSchema>;

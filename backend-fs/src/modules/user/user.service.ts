@@ -1,14 +1,14 @@
 import { User } from '../../db/schema';
 import { UserRepository } from './user.repository';
-import { CreateUserDto } from './user.schema';
+import { UserCreateDto } from './user.schema';
 
 export interface UserService {
-	createUser: (dto: CreateUserDto) => Promise<User>;
+	createUser: (dto: UserCreateDto) => Promise<User>;
 }
 
 export function createUserService(repo: UserRepository) {
 	return {
-		createUser: async (dto: CreateUserDto) => {
+		createUser: async (dto: UserCreateDto) => {
 			const newUser = {
 				...dto,
 				passwordHash: dto.password,
