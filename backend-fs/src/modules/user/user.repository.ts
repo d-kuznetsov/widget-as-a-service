@@ -1,18 +1,13 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { NewUser, User, usersTable } from '../../db/schema';
 import { ConflictError, DatabaseError } from '../../shared/errors';
-import { PostgresErrorCode } from '../../shared/utils/pg-errors';
+import {
+	isPgErrorWithCause,
+	PostgresErrorCode,
+} from '../../shared/utils/pg-errors';
 
 export interface UserRepository {
 	createUser: (dto: NewUser) => Promise<User>;
-}
-
-interface PgErrorWithCause {
-	cause?: { code?: string; message?: string };
-}
-
-function isPgErrorWithCause(error: unknown): error is PgErrorWithCause {
-	return typeof error === 'object' && error !== null && 'cause' in error;
 }
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
@@ -26,7 +21,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					isPgErrorWithCause(error) &&
 					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION
 				) {
-					if (error.cause?.message?.includes('email')) {
+					if (error.cause?.detail?.includes('email')) {
 						throw new ConflictError('Email already exists');
 					}
 					throw new ConflictError();

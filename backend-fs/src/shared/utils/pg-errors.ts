@@ -1,3 +1,11 @@
+export interface PgErrorWithCause {
+	cause?: { code?: string; detail?: string };
+}
+
+export function isPgErrorWithCause(error: unknown): error is PgErrorWithCause {
+	return typeof error === 'object' && error !== null && 'cause' in error;
+}
+
 export enum PostgresErrorCode {
 	// Integrity / constraints
 	UNIQUE_VIOLATION = '23505',
