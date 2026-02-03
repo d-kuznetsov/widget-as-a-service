@@ -1,8 +1,8 @@
 import { integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 const timestamps = {
-	created_at: timestamp().defaultNow().notNull(),
-	updated_at: timestamp().defaultNow().notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull(),
+	updatedAt: timestamp('updated_at').defaultNow().notNull(),
 };
 
 export const usersTable = pgTable('users', {
@@ -20,3 +20,6 @@ export const usersTable = pgTable('users', {
 	lastLoginAt: timestamp('last_login_at'),
 	...timestamps,
 });
+
+export type User = typeof usersTable.$inferSelect;
+export type NewUser = typeof usersTable.$inferInsert;
