@@ -2,7 +2,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import { createUserSchema } from './user.schema';
 
-export default async function userController(fastify: FastifyInstance) {
+export default async function userRouter(fastify: FastifyInstance) {
 	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/', {
 		schema: {
 			body: createUserSchema,
