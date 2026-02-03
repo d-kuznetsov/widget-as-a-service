@@ -1,4 +1,4 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import fp from 'fastify-plugin';
 
 export default fp(async (fastify, opts) => {
@@ -8,6 +8,6 @@ export default fp(async (fastify, opts) => {
 
 declare module 'fastify' {
 	export interface FastifyInstance {
-		db: ReturnType<typeof drizzle>;
+		db: NodePgDatabase;
 	}
 }
