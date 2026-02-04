@@ -24,11 +24,11 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION
 				) {
 					if (error.cause?.detail?.includes('email')) {
-						throw new ConflictError('Email already exists');
+						throw new ConflictError({ message: 'Email already exists' });
 					}
 					throw new ConflictError();
 				}
-				throw new DatabaseError();
+				throw new DatabaseError({ cause: error as Error });
 			}
 		},
 		findOne: async (id: number) => {
@@ -40,7 +40,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.limit(1);
 				return result[0] ?? null;
 			} catch (error) {
-				throw new DatabaseError();
+				throw new DatabaseError({ cause: error as Error });
 			}
 		},
 	};

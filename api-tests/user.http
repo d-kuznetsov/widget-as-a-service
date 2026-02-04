@@ -13,4 +13,4 @@ Content-Type: {{contentType}}
 }
 
 ### Get user by id
-GET {{baseUrl}}/users/1
+GET {{baseUrl}}/users/gg
