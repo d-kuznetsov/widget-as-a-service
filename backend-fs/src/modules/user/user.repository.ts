@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { NewUser, User, usersTable } from '../../db/schema';
 import { ConflictError, DatabaseError } from '../../shared/errors';
@@ -7,12 +8,13 @@ import {
 } from '../../shared/utils/pg-errors';
 
 export interface UserRepository {
-	createUser: (dto: NewUser) => Promise<User>;
+	create: (newUser: NewUser) => Promise<User>;
+	findOne: (id: number) => Promise<User | null>;
 }
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
 	return {
-		createUser: async (newUser: NewUser) => {
+		create: async (newUser: NewUser) => {
 			try {
 				const result = await db.insert(usersTable).values(newUser).returning();
 				return result[0];
@@ -26,6 +28,18 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					}
 					throw new ConflictError();
 				}
+				throw new DatabaseError();
+			}
+		},
+		findOne: async (id: number) => {
+			try {
+				const result = await db
+					.select()
+					.from(usersTable)
+					.where(eq(usersTable.id, id))
+					.limit(1);
+				return result[0] ?? null;
+			} catch (error) {
 				throw new DatabaseError();
 			}
 		},

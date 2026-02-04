@@ -11,3 +11,6 @@ Content-Type: {{contentType}}
   "firstName": "Jane",
   "lastName": "Doe"
 }
+
+### Get user by id
+GET {{baseUrl}}/users/1
