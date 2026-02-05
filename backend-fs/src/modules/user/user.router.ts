@@ -2,11 +2,9 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import { createUserRepository } from './user.repository';
 import {
-	createUserResponseSchema,
-	updateUserResponseSchema,
 	userCreateSchema,
-	userFindOneParamsSchema,
-	userFindOneResponseSchema,
+	userParamsSchema,
+	userResponseSchema,
 	userUpdateSchema,
 } from './user.schema';
 import { createUserService } from './user.service';
@@ -19,7 +17,7 @@ export default async function userRouter(fastify: FastifyInstance) {
 		schema: {
 			body: userCreateSchema,
 			response: {
-				201: createUserResponseSchema,
+				201: userResponseSchema,
 			},
 		},
 		handler: async (request, reply) => {
@@ -31,9 +29,9 @@ export default async function userRouter(fastify: FastifyInstance) {
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().get('/:id', {
 		schema: {
-			params: userFindOneParamsSchema,
+			params: userParamsSchema,
 			response: {
-				200: userFindOneResponseSchema,
+				200: userResponseSchema,
 			},
 		},
 		handler: async (request) => {
@@ -44,10 +42,10 @@ export default async function userRouter(fastify: FastifyInstance) {
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().put('/:id', {
 		schema: {
-			params: userFindOneParamsSchema,
+			params: userParamsSchema,
 			body: userUpdateSchema,
 			response: {
-				200: updateUserResponseSchema,
+				200: userResponseSchema,
 			},
 		},
 		handler: async (request) => {
@@ -58,7 +56,7 @@ export default async function userRouter(fastify: FastifyInstance) {
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().delete('/:id', {
 		schema: {
-			params: userFindOneParamsSchema,
+			params: userParamsSchema,
 		},
 		handler: async (request, reply) => {
 			await service.delete(request.params.id);
