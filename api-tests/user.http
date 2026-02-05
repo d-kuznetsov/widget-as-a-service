@@ -23,3 +23,6 @@ Content-Type: {{contentType}}
   "firstName": "John",
   "lastName": "Smith"
 }
+
+### Delete user
+DELETE {{baseUrl}}/users/17

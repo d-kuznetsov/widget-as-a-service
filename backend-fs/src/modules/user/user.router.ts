@@ -55,4 +55,15 @@ export default async function userRouter(fastify: FastifyInstance) {
 			return user;
 		},
 	});
+
+	fastify.withTypeProvider<TypeBoxTypeProvider>().delete('/:id', {
+		schema: {
+			params: userFindOneParamsSchema,
+		},
+		handler: async (request, reply) => {
+			await service.delete(request.params.id);
+			reply.code(204);
+			return;
+		},
+	});
 }

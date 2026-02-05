@@ -11,6 +11,7 @@ export interface UserRepository {
 	create: (newUser: NewUser) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
 	update: (id: number, updates: Partial<User>) => Promise<User | null>;
+	delete: (id: number) => Promise<User | null>;
 }
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
@@ -49,6 +50,17 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 				const result = await db
 					.update(usersTable)
 					.set(updates)
+					.where(eq(usersTable.id, id))
+					.returning();
+				return result[0] ?? null;
+			} catch (error) {
+				throw new DatabaseError({ cause: error as Error });
+			}
+		},
+		delete: async (id: number) => {
+			try {
+				const result = await db
+					.delete(usersTable)
 					.where(eq(usersTable.id, id))
 					.returning();
 				return result[0] ?? null;

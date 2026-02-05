@@ -7,6 +7,7 @@ export interface UserService {
 	create: (dto: UserCreateDto) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
 	update: (id: number, updates: Partial<User>) => Promise<User>;
+	delete: (id: number) => Promise<User>;
 }
 
 export function createUserService(repo: UserRepository): UserService {
@@ -27,6 +28,13 @@ export function createUserService(repo: UserRepository): UserService {
 		},
 		update: async (id: number, updates: Partial<User>) => {
 			const user = await repo.update(id, updates);
+			if (!user) {
+				throw new NotFoundError({ message: 'User not found' });
+			}
+			return user;
+		},
+		delete: async (id: number) => {
+			const user = await repo.delete(id);
 			if (!user) {
 				throw new NotFoundError({ message: 'User not found' });
 			}
