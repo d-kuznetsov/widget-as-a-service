@@ -6,12 +6,12 @@ import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
 } from '../../shared/utils/pg-errors';
-import { UserUpdateDto } from './user.schema';
+import { UserUpdateInput } from './user.schema';
 
 export interface UserRepository {
 	create: (newUser: NewUser) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
-	update: (id: number, updates: UserUpdateDto) => Promise<User | null>;
+	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
 }
 
@@ -46,11 +46,11 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 				throw new DatabaseError({ cause: error as Error });
 			}
 		},
-		update: async (id: number, updates: UserUpdateDto) => {
+		update: async (id: number, input: UserUpdateInput) => {
 			try {
 				const result = await db
 					.update(usersTable)
-					.set(updates)
+					.set(input)
 					.where(eq(usersTable.id, id))
 					.returning();
 				return result[0] ?? null;

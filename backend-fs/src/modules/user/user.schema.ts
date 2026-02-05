@@ -44,5 +44,5 @@ export const updateUserResponseSchema = Type.Object(
 	{ $id: 'updateUserResponse' }
 );
 
-export type UserCreateDto = Type.Static<typeof userCreateSchema>;
-export type UserUpdateDto = Type.Static<typeof userUpdateSchema>;
+export type UserCreateInput = Type.Static<typeof userCreateSchema>;
+export type UserUpdateInput = Type.Static<typeof userUpdateSchema>;
