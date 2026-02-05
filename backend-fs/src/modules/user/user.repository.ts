@@ -6,11 +6,12 @@ import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
 } from '../../shared/utils/pg-errors';
+import { UserUpdateDto } from './user.schema';
 
 export interface UserRepository {
 	create: (newUser: NewUser) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
-	update: (id: number, updates: Partial<User>) => Promise<User | null>;
+	update: (id: number, updates: UserUpdateDto) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
 }
 
@@ -28,7 +29,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					if (error.cause?.detail?.includes('email')) {
 						throw new ConflictError({ message: 'Email already exists' });
 					}
-					throw new ConflictError();
+					throw new ConflictError({ cause: error as Error });
 				}
 				throw new DatabaseError({ cause: error as Error });
 			}
@@ -45,7 +46,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 				throw new DatabaseError({ cause: error as Error });
 			}
 		},
-		update: async (id: number, updates: Partial<User>) => {
+		update: async (id: number, updates: UserUpdateDto) => {
 			try {
 				const result = await db
 					.update(usersTable)

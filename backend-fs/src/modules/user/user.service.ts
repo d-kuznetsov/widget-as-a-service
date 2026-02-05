@@ -1,12 +1,12 @@
 import { User } from '../../db/schema';
 import { NotFoundError } from '../../shared/errors';
 import { UserRepository } from './user.repository';
-import { UserCreateDto } from './user.schema';
+import { UserCreateDto, UserUpdateDto } from './user.schema';
 
 export interface UserService {
 	create: (dto: UserCreateDto) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
-	update: (id: number, updates: Partial<User>) => Promise<User>;
+	update: (id: number, updates: UserUpdateDto) => Promise<User>;
 	delete: (id: number) => Promise<User>;
 }
 
@@ -26,7 +26,7 @@ export function createUserService(repo: UserRepository): UserService {
 			}
 			return user;
 		},
-		update: async (id: number, updates: Partial<User>) => {
+		update: async (id: number, updates: UserUpdateDto) => {
 			const user = await repo.update(id, updates);
 			if (!user) {
 				throw new NotFoundError({ message: 'User not found' });

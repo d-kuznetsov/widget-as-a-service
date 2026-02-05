@@ -45,3 +45,4 @@ export const updateUserResponseSchema = Type.Object(
 );
 
 export type UserCreateDto = Type.Static<typeof userCreateSchema>;
+export type UserUpdateDto = Type.Static<typeof userUpdateSchema>;
