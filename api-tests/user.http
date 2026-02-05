@@ -13,4 +13,13 @@ Content-Type: {{contentType}}
 }
 
 ### Get user by id
-GET {{baseUrl}}/users/gg
+GET {{baseUrl}}/users/1
+
+### Update user
+PUT {{baseUrl}}/users/17
+Content-Type: {{contentType}}
+
+{
+  "firstName": "John",
+  "lastName": "Smith"
+}

@@ -3,9 +3,11 @@ import { FastifyInstance } from 'fastify';
 import { createUserRepository } from './user.repository';
 import {
 	createUserResponseSchema,
+	updateUserResponseSchema,
 	userCreateSchema,
 	userFindOneParamsSchema,
 	userFindOneResponseSchema,
+	userUpdateSchema,
 } from './user.schema';
 import { createUserService } from './user.service';
 
@@ -34,8 +36,22 @@ export default async function userRouter(fastify: FastifyInstance) {
 				200: userFindOneResponseSchema,
 			},
 		},
-		handler: async (request, reply) => {
+		handler: async (request) => {
 			const user = await service.findOne(request.params.id);
+			return user;
+		},
+	});
+
+	fastify.withTypeProvider<TypeBoxTypeProvider>().put('/:id', {
+		schema: {
+			params: userFindOneParamsSchema,
+			body: userUpdateSchema,
+			response: {
+				200: updateUserResponseSchema,
+			},
+		},
+		handler: async (request) => {
+			const user = await service.update(request.params.id, request.body);
 			return user;
 		},
 	});

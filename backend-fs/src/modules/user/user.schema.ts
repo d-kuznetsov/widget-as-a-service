@@ -33,4 +33,15 @@ export const userFindOneResponseSchema = Type.Object({
 	...createUserResponseSchema.properties,
 });
 
+export const userUpdateSchema = Type.Partial(userCreateSchema, {
+	$id: 'userUpdate',
+});
+
+export const updateUserResponseSchema = Type.Object(
+	{
+		...createUserResponseSchema.properties,
+	},
+	{ $id: 'updateUserResponse' }
+);
+
 export type UserCreateDto = Type.Static<typeof userCreateSchema>;

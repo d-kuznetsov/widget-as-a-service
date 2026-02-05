@@ -10,6 +10,7 @@ import {
 export interface UserRepository {
 	create: (newUser: NewUser) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
+	update: (id: number, updates: Partial<User>) => Promise<User | null>;
 }
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
@@ -38,6 +39,18 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.from(usersTable)
 					.where(eq(usersTable.id, id))
 					.limit(1);
+				return result[0] ?? null;
+			} catch (error) {
+				throw new DatabaseError({ cause: error as Error });
+			}
+		},
+		update: async (id: number, updates: Partial<User>) => {
+			try {
+				const result = await db
+					.update(usersTable)
+					.set(updates)
+					.where(eq(usersTable.id, id))
+					.returning();
 				return result[0] ?? null;
 			} catch (error) {
 				throw new DatabaseError({ cause: error as Error });

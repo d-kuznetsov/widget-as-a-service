@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"dev": "cd backend && npm run start:dev",
+		"dev": "cd backend-fs && npm run start:dev",
 		"start": "cd backend && npm run start",
 		"build": "cd backend && npm run build",
 		"lint": "biome lint .",
