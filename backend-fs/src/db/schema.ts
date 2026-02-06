@@ -1,4 +1,10 @@
-import { integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import {
+	integer,
+	pgTable,
+	timestamp,
+	unique,
+	varchar,
+} from 'drizzle-orm/pg-core';
 
 const timestamps = {
 	createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -23,3 +29,25 @@ export const usersTable = pgTable('users', {
 
 export type NewUser = typeof usersTable.$inferInsert;
 export type User = typeof usersTable.$inferSelect;
+
+export const rolesTable = pgTable('roles', {
+	id: integer().primaryKey().generatedAlwaysAsIdentity(),
+	name: varchar('name', { length: 255 }).notNull().unique(),
+	description: varchar('description', { length: 255 }),
+	...timestamps,
+});
+
+export const userRolesTable = pgTable(
+	'user_roles',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		userId: integer()
+			.notNull()
+			.references(() => usersTable.id),
+		roleId: integer()
+			.notNull()
+			.references(() => rolesTable.id),
+		...timestamps,
+	},
+	(table) => [unique().on(table.userId, table.roleId)]
+);
