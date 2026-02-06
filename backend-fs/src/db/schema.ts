@@ -43,10 +43,10 @@ export const userRolesTable = pgTable(
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
 		userId: integer()
 			.notNull()
-			.references(() => usersTable.id),
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
 		roleId: integer()
 			.notNull()
-			.references(() => rolesTable.id),
+			.references(() => rolesTable.id, { onDelete: 'cascade' }),
 		...timestamps,
 	},
 	(table) => [unique().on(table.userId, table.roleId)]
