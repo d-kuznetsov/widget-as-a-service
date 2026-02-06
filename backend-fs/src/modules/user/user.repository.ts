@@ -1,11 +1,18 @@
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { NewUser, User, usersTable } from '../../db/schema';
-import { ConflictError, DatabaseError } from '../../shared/errors';
+import {
+	NewUser,
+	rolesTable,
+	User,
+	userRolesTable,
+	usersTable,
+} from '../../db/schema';
+import { AppError, ConflictError, DatabaseError } from '../../shared/errors';
 import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
 } from '../../shared/utils/pg-errors';
+import { Roles } from '../../shared/utils/roles';
 import { UserUpdateInput } from './user.schema';
 
 export interface UserRepository {
@@ -19,9 +26,28 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 	return {
 		create: async (newUser: NewUser) => {
 			try {
-				const result = await db.insert(usersTable).values(newUser).returning();
-				return result[0];
+				return await db.transaction(async (tx) => {
+					const [user] = await tx
+						.insert(usersTable)
+						.values(newUser)
+						.returning();
+					const [clientRole] = await tx
+						.select()
+						.from(rolesTable)
+						.where(eq(rolesTable.name, Roles.CLIENT))
+						.limit(1);
+					if (!clientRole) {
+						throw new DatabaseError({
+							message: `Role "${Roles.CLIENT}" not found. Ensure roles are seeded.`,
+						});
+					}
+					await tx
+						.insert(userRolesTable)
+						.values({ userId: user.id, roleId: clientRole.id });
+					return user;
+				});
 			} catch (error) {
+				if (error instanceof AppError) throw error;
 				if (
 					isPgErrorWithCause(error) &&
 					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION
@@ -36,35 +62,35 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 		},
 		findOne: async (id: number) => {
 			try {
-				const result = await db
+				const [user] = await db
 					.select()
 					.from(usersTable)
 					.where(eq(usersTable.id, id))
 					.limit(1);
-				return result[0] ?? null;
+				return user ?? null;
 			} catch (error) {
 				throw new DatabaseError({ cause: error as Error });
 			}
 		},
 		update: async (id: number, input: UserUpdateInput) => {
 			try {
-				const result = await db
+				const [user] = await db
 					.update(usersTable)
 					.set(input)
 					.where(eq(usersTable.id, id))
 					.returning();
-				return result[0] ?? null;
+				return user ?? null;
 			} catch (error) {
 				throw new DatabaseError({ cause: error as Error });
 			}
 		},
 		delete: async (id: number) => {
 			try {
-				const result = await db
+				const [user] = await db
 					.delete(usersTable)
 					.where(eq(usersTable.id, id))
 					.returning();
-				return result[0] ?? null;
+				return user ?? null;
 			} catch (error) {
 				throw new DatabaseError({ cause: error as Error });
 			}
