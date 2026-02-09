@@ -1,4 +1,5 @@
 import { Type } from 'typebox';
+import { Roles } from '../../shared/utils/roles';
 
 export const userBaseSchema = Type.Object({
 	email: Type.String({ format: 'email', maxLength: 255 }),
@@ -20,6 +21,10 @@ export const userResponseSchema = Type.Object({
 
 export const userParamsSchema = Type.Object({
 	id: Type.Number(),
+});
+
+export const userUpdateRolesSchema = Type.Object({
+	roles: Type.Array(Type.String({ enum: Object.values(Roles) })),
 });
 
 export type UserCreateInput = Type.Static<typeof userCreateSchema>;

@@ -1,5 +1,6 @@
 import { User } from '../../db/schema';
 import { NotFoundError } from '../../shared/errors';
+import { Role } from '../../shared/utils/roles';
 import { UserRepository } from './user.repository';
 import { UserCreateInput, UserUpdateInput } from './user.schema';
 
@@ -8,6 +9,7 @@ export interface UserService {
 	findOne: (id: number) => Promise<User>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
+	updateRoles: (userId: number, roleNames: Role[]) => Promise<void>;
 }
 
 export function createUserService(repo: UserRepository): UserService {
@@ -39,6 +41,9 @@ export function createUserService(repo: UserRepository): UserService {
 				throw new NotFoundError({ message: 'User not found' });
 			}
 			return user;
+		},
+		updateRoles: async (userId: number, roleNames: Role[]) => {
+			await repo.updateRoles(userId, roleNames);
 		},
 	};
 }

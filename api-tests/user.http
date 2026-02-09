@@ -24,5 +24,13 @@ Content-Type: {{contentType}}
   "lastName": "Smith"
 }
 
+### Update user roles
+PUT {{baseUrl}}/users/27/roles
+Content-Type: {{contentType}}
+
+{
+  "roles": ["client", "specialist"]
+}
+
 ### Delete user
 DELETE {{baseUrl}}/users/17

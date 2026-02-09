@@ -1,9 +1,11 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
+import { Role } from '../../shared/utils/roles';
 import {
 	userCreateSchema,
 	userParamsSchema,
 	userResponseSchema,
+	userUpdateRolesSchema,
 	userUpdateSchema,
 } from './user.schema';
 import { UserService } from './user.service';
@@ -65,6 +67,20 @@ export async function initUserRouter(
 		},
 		handler: async (request, reply) => {
 			await service.delete(request.params.id);
+			reply.code(204);
+			return;
+		},
+	});
+	fastify.withTypeProvider<TypeBoxTypeProvider>().put('/:id/roles', {
+		schema: {
+			params: userParamsSchema,
+			body: userUpdateRolesSchema,
+		},
+		handler: async (request, reply) => {
+			await service.updateRoles(
+				request.params.id,
+				request.body.roles as Role[]
+			);
 			reply.code(204);
 			return;
 		},

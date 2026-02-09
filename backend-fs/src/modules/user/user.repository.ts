@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	NewUser,
@@ -12,7 +12,7 @@ import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
 } from '../../shared/utils/pg-errors';
-import { Roles } from '../../shared/utils/roles';
+import { Role, Roles } from '../../shared/utils/roles';
 import { UserUpdateInput } from './user.schema';
 
 export interface UserRepository {
@@ -20,6 +20,7 @@ export interface UserRepository {
 	findOne: (id: number) => Promise<User | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
+	updateRoles: (userId: number, roleNames: Role[]) => Promise<Role[]>;
 }
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
@@ -92,6 +93,34 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.returning();
 				return user ?? null;
 			} catch (error) {
+				throw new DatabaseError({ cause: error as Error });
+			}
+		},
+		updateRoles: async (userId: number, roleNames: Role[]) => {
+			try {
+				return await db.transaction(async (tx) => {
+					await tx
+						.delete(userRolesTable)
+						.where(eq(userRolesTable.userId, userId));
+					if (roleNames.length === 0) return [];
+					const roles = await tx
+						.select()
+						.from(rolesTable)
+						.where(inArray(rolesTable.name, roleNames));
+					await tx
+						.insert(userRolesTable)
+						.values(roles.map((role) => ({ userId, roleId: role.id })));
+					return roles.map((r) => r.name as Role);
+				});
+			} catch (error) {
+				if (error instanceof AppError) throw error;
+				if (
+					isPgErrorWithCause(error) &&
+					error.cause?.code === PostgresErrorCode.FOREIGN_KEY_VIOLATION &&
+					error.cause?.detail?.includes('userId')
+				) {
+					throw new ConflictError({ message: 'User not found' });
+				}
 				throw new DatabaseError({ cause: error as Error });
 			}
 		},
