@@ -1,5 +1,9 @@
 import { User } from '../../db/schema';
-import { NotFoundError } from '../../shared/errors';
+import {
+	EntityAlreadyExistsError,
+	ForeignKeyViolationError,
+	NotFoundError,
+} from '../../shared/errors';
 import { Role } from '../../shared/utils/roles';
 import { UserRepository } from './user.repository';
 import { UserCreateInput, UserUpdateInput } from './user.schema';
@@ -19,7 +23,14 @@ export function createUserService(repo: UserRepository): UserService {
 				...input,
 				passwordHash: input.password,
 			};
-			return repo.create(newUser);
+			try {
+				return await repo.create(newUser);
+			} catch (error) {
+				if (error instanceof EntityAlreadyExistsError) {
+					throw error;
+				}
+				throw error;
+			}
 		},
 		findOne: async (id: number) => {
 			const user = await repo.findOne(id);
@@ -43,7 +54,14 @@ export function createUserService(repo: UserRepository): UserService {
 			return user;
 		},
 		updateRoles: async (userId: number, roleNames: Role[]) => {
-			await repo.updateRoles(userId, roleNames);
+			try {
+				await repo.updateRoles(userId, roleNames);
+			} catch (error) {
+				if (error instanceof ForeignKeyViolationError) {
+					throw error;
+				}
+				throw error;
+			}
 		},
 	};
 }

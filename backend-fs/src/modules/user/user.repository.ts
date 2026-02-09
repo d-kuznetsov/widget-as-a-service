@@ -7,7 +7,12 @@ import {
 	userRolesTable,
 	usersTable,
 } from '../../db/schema';
-import { AppError, ConflictError, DatabaseError } from '../../shared/errors';
+import {
+	AppError,
+	EntityAlreadyExistsError,
+	ForeignKeyViolationError,
+	RepositoryError,
+} from '../../shared/errors';
 import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
@@ -38,7 +43,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 						.where(eq(rolesTable.name, Roles.CLIENT))
 						.limit(1);
 					if (!clientRole) {
-						throw new DatabaseError({
+						throw new RepositoryError({
 							message: `Role "${Roles.CLIENT}" not found. Ensure roles are seeded.`,
 						});
 					}
@@ -54,11 +59,13 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION
 				) {
 					if (error.cause?.detail?.includes('email')) {
-						throw new ConflictError({ message: 'Email already exists' });
+						throw new EntityAlreadyExistsError({
+							message: 'Email already exists',
+						});
 					}
-					throw new ConflictError({ cause: error as Error });
+					throw new EntityAlreadyExistsError({ cause: error as Error });
 				}
-				throw new DatabaseError({ cause: error as Error });
+				throw new RepositoryError({ cause: error as Error });
 			}
 		},
 		findOne: async (id: number) => {
@@ -70,7 +77,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.limit(1);
 				return user ?? null;
 			} catch (error) {
-				throw new DatabaseError({ cause: error as Error });
+				throw new RepositoryError({ cause: error as Error });
 			}
 		},
 		update: async (id: number, input: UserUpdateInput) => {
@@ -82,7 +89,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.returning();
 				return user ?? null;
 			} catch (error) {
-				throw new DatabaseError({ cause: error as Error });
+				throw new RepositoryError({ cause: error as Error });
 			}
 		},
 		delete: async (id: number) => {
@@ -93,7 +100,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.returning();
 				return user ?? null;
 			} catch (error) {
-				throw new DatabaseError({ cause: error as Error });
+				throw new RepositoryError({ cause: error as Error });
 			}
 		},
 		updateRoles: async (userId: number, roleNames: Role[]) => {
@@ -119,9 +126,9 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					error.cause?.code === PostgresErrorCode.FOREIGN_KEY_VIOLATION &&
 					error.cause?.detail?.includes('userId')
 				) {
-					throw new ConflictError({ message: 'User not found' });
+					throw new ForeignKeyViolationError({ message: 'User not found' });
 				}
-				throw new DatabaseError({ cause: error as Error });
+				throw new RepositoryError({ cause: error as Error });
 			}
 		},
 	};
