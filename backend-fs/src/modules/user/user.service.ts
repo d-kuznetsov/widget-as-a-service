@@ -1,8 +1,8 @@
 import { User } from '../../db/schema';
 import {
-	EntityAlreadyExistsError,
-	ForeignKeyViolationError,
-	NotFoundError,
+	RepositoryError,
+	RepositoryErrorCode,
+	ServiceError,
 } from '../../shared/errors';
 import { Role } from '../../shared/utils/roles';
 import { UserRepository } from './user.repository';
@@ -26,8 +26,11 @@ export function createUserService(repo: UserRepository): UserService {
 			try {
 				return await repo.create(newUser);
 			} catch (error) {
-				if (error instanceof EntityAlreadyExistsError) {
-					throw error;
+				if (
+					(error as RepositoryError).code ===
+					RepositoryErrorCode.ENTITY_ALREADY_EXISTS
+				) {
+					throw ServiceError.createUserAlreadyExists({ cause: error as Error });
 				}
 				throw error;
 			}
@@ -35,21 +38,21 @@ export function createUserService(repo: UserRepository): UserService {
 		findOne: async (id: number) => {
 			const user = await repo.findOne(id);
 			if (!user) {
-				throw new NotFoundError({ message: 'User not found' });
+				throw ServiceError.createUserNotFound();
 			}
 			return user;
 		},
 		update: async (id: number, input: UserUpdateInput) => {
 			const user = await repo.update(id, input);
 			if (!user) {
-				throw new NotFoundError({ message: 'User not found' });
+				throw ServiceError.createUserNotFound();
 			}
 			return user;
 		},
 		delete: async (id: number) => {
 			const user = await repo.delete(id);
 			if (!user) {
-				throw new NotFoundError({ message: 'User not found' });
+				throw ServiceError.createUserNotFound();
 			}
 			return user;
 		},
@@ -57,8 +60,11 @@ export function createUserService(repo: UserRepository): UserService {
 			try {
 				await repo.updateRoles(userId, roleNames);
 			} catch (error) {
-				if (error instanceof ForeignKeyViolationError) {
-					throw error;
+				if (
+					(error as RepositoryError).code ===
+					RepositoryErrorCode.FOREIGN_KEY_VIOLATION
+				) {
+					throw ServiceError.createUserNotFound({ cause: error as Error });
 				}
 				throw error;
 			}

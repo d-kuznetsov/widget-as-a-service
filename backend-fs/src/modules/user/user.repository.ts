@@ -7,12 +7,7 @@ import {
 	userRolesTable,
 	usersTable,
 } from '../../db/schema';
-import {
-	AppError,
-	EntityAlreadyExistsError,
-	ForeignKeyViolationError,
-	RepositoryError,
-} from '../../shared/errors';
+import { AppError, RepositoryError } from '../../shared/errors';
 import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
@@ -59,11 +54,13 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION
 				) {
 					if (error.cause?.detail?.includes('email')) {
-						throw new EntityAlreadyExistsError({
+						throw RepositoryError.createEntityAlreadyExists({
 							message: 'Email already exists',
 						});
 					}
-					throw new EntityAlreadyExistsError({ cause: error as Error });
+					throw RepositoryError.createEntityAlreadyExists({
+						cause: error as Error,
+					});
 				}
 				throw new RepositoryError({ cause: error as Error });
 			}
@@ -126,7 +123,9 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					error.cause?.code === PostgresErrorCode.FOREIGN_KEY_VIOLATION &&
 					error.cause?.detail?.includes('userId')
 				) {
-					throw new ForeignKeyViolationError({ message: 'User not found' });
+					throw RepositoryError.createForeignKeyViolation({
+						message: 'User not found',
+					});
 				}
 				throw new RepositoryError({ cause: error as Error });
 			}

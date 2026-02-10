@@ -12,11 +12,22 @@ export class AppError extends Error {
 
 	constructor(params: AppErrorParams) {
 		super(params.message);
+
 		this.name = this.constructor.name;
 		this.statusCode = params.statusCode ?? 500;
 		this.code = params.code;
 		this.cause = params.cause;
+
+		Error.captureStackTrace?.(this, new.target);
 	}
+}
+
+export enum RepositoryErrorCode {
+	ENTITY_NOT_FOUND = 'ENTITY_NOT_FOUND',
+	ENTITY_ALREADY_EXISTS = 'ENTITY_ALREADY_EXISTS',
+	FOREIGN_KEY_VIOLATION = 'FOREIGN_KEY_VIOLATION',
+	DATA_CONFLICT = 'DATA_CONFLICT',
+	REPOSITORY_UNAVAILABLE = 'REPOSITORY_UNAVAILABLE',
 }
 
 export class RepositoryError extends AppError {
@@ -28,81 +39,77 @@ export class RepositoryError extends AppError {
 			...params,
 		});
 	}
-}
-
-// EntityNotFound EntityAlreadyExists ForeignKeyViolation DataConflict RepositoryUnavailable
-export class EntityNotFoundError extends AppError {
-	constructor(params: Partial<AppErrorParams> = {}) {
-		super({
+	static createEntityNotFound(params: Partial<AppErrorParams> = {}) {
+		return new RepositoryError({
 			message: 'Entity not found',
 			statusCode: 404,
-			code: 'ENTITY_NOT_FOUND',
+			code: RepositoryErrorCode.ENTITY_NOT_FOUND,
 			...params,
 		});
 	}
-}
-
-export class EntityAlreadyExistsError extends AppError {
-	constructor(params: Partial<AppErrorParams> = {}) {
-		super({
+	static createEntityAlreadyExists(params: Partial<AppErrorParams> = {}) {
+		return new RepositoryError({
 			message: 'Entity already exists',
 			statusCode: 409,
-			code: 'ENTITY_ALREADY_EXISTS',
+			code: RepositoryErrorCode.ENTITY_ALREADY_EXISTS,
 			...params,
 		});
 	}
-}
-
-export class ForeignKeyViolationError extends AppError {
-	constructor(params: Partial<AppErrorParams> = {}) {
-		super({
+	static createForeignKeyViolation(params: Partial<AppErrorParams> = {}) {
+		return new RepositoryError({
 			message: 'Foreign key violation',
 			statusCode: 409,
-			code: 'FOREIGN_KEY_VIOLATION',
+			code: RepositoryErrorCode.FOREIGN_KEY_VIOLATION,
 			...params,
 		});
 	}
-}
-
-export class ConflictError extends AppError {
-	constructor(params: Partial<AppErrorParams> = {}) {
-		super({
-			message: 'Conflict',
-			statusCode: 409,
-			code: 'CONFLICT',
-			...params,
-		});
-	}
-}
-
-export class DataConflictError extends AppError {
-	constructor(params: Partial<AppErrorParams> = {}) {
-		super({
+	static createDataConflict(params: Partial<AppErrorParams> = {}) {
+		return new RepositoryError({
 			message: 'Data conflict',
 			statusCode: 409,
-			code: 'DATA_CONFLICT',
+			code: RepositoryErrorCode.DATA_CONFLICT,
 			...params,
 		});
 	}
-}
-
-export class RepositoryUnavailableError extends AppError {
-	constructor(params: Partial<AppErrorParams> = {}) {
-		super({
+	static createRepositoryUnavailable(params: Partial<AppErrorParams> = {}) {
+		return new RepositoryError({
 			message: 'Repository unavailable',
 			statusCode: 503,
-			code: 'REPOSITORY_UNAVAILABLE',
+			code: RepositoryErrorCode.REPOSITORY_UNAVAILABLE,
 			...params,
 		});
 	}
 }
 
-export class NotFoundError extends AppError {
+export enum ServiceErrorCode {
+	USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
+	USER_NOT_FOUND = 'USER_NOT_FOUND',
+	SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+}
+
+export class ServiceError extends AppError {
 	constructor(params: Partial<AppErrorParams> = {}) {
 		super({
-			message: 'Not found',
+			message: 'Service error',
+			statusCode: 500,
+			code: 'SERVICE_ERROR',
+			...params,
+		});
+	}
+
+	static createUserAlreadyExists(params: Partial<AppErrorParams> = {}) {
+		return new ServiceError({
+			message: 'User already exists',
+			statusCode: 409,
+			code: ServiceErrorCode.USER_ALREADY_EXISTS,
+			...params,
+		});
+	}
+	static createUserNotFound(params: Partial<AppErrorParams> = {}) {
+		return new ServiceError({
+			message: 'User not found',
 			statusCode: 404,
-			code: 'NOT_FOUND',
+			code: ServiceErrorCode.USER_NOT_FOUND,
 			...params,
 		});
 	}
