@@ -6,6 +6,7 @@ import {
 } from './modules/user';
 import dbPlugin from './plugins/db.plugin';
 import envPlugin from './plugins/env.plugin';
+import errorHandlerPlugin from './plugins/error-handler.plugin';
 
 export interface AppOptions extends FastifyServerOptions {}
 
@@ -13,6 +14,7 @@ export interface AppOptions extends FastifyServerOptions {}
 const options: AppOptions = {};
 
 const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
+	await fastify.register(errorHandlerPlugin);
 	await fastify.register(envPlugin).ready(() => {
 		console.log(fastify.config);
 	});
