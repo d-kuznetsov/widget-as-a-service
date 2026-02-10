@@ -8,6 +8,9 @@ const schema = {
 		DATABASE_URL: {
 			type: 'string',
 		},
+		JWT_SECRET: {
+			type: 'string',
+		},
 	},
 };
 
@@ -26,6 +29,7 @@ declare module 'fastify' {
 	export interface FastifyInstance {
 		config: {
 			DATABASE_URL: string;
+			JWT_SECRET: string;
 		};
 	}
 }
