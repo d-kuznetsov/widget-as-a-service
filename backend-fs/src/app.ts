@@ -4,6 +4,7 @@ import {
 	createUserService,
 	initUserRouter,
 } from './modules/user';
+import authPlugin from './plugins/auth.plugin';
 import dbPlugin from './plugins/db.plugin';
 import envPlugin from './plugins/env.plugin';
 import errorHandlerPlugin from './plugins/error-handler.plugin';
@@ -19,7 +20,7 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 		console.log(fastify.config);
 	});
 	await fastify.register(dbPlugin);
-
+	await fastify.register(authPlugin);
 	await fastify.register(initUserRouter, {
 		prefix: '/users',
 		service: createUserService(createUserRepository(fastify.db)),
