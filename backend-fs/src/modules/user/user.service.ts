@@ -4,6 +4,7 @@ import {
 	RepositoryErrorCode,
 	ServiceError,
 } from '../../shared/errors';
+import { hashPassword } from '../../shared/utils/password';
 import { Role } from '../../shared/utils/roles';
 import { UserRepository } from './user.repository';
 import { UserCreateInput, UserUpdateInput } from './user.schema';
@@ -11,6 +12,7 @@ import { UserCreateInput, UserUpdateInput } from './user.schema';
 export interface UserService {
 	create: (input: UserCreateInput) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
+	findByEmail: (email: string) => Promise<User>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
 	updateRoles: (userId: number, roleNames: Role[]) => Promise<void>;
@@ -19,9 +21,10 @@ export interface UserService {
 export function createUserService(repo: UserRepository): UserService {
 	return {
 		create: async (input: UserCreateInput) => {
+			const { password, ...rest } = input;
 			const newUser = {
-				...input,
-				passwordHash: input.password,
+				...rest,
+				passwordHash: await hashPassword(password),
 			};
 			try {
 				return await repo.create(newUser);
@@ -37,6 +40,13 @@ export function createUserService(repo: UserRepository): UserService {
 		},
 		findOne: async (id: number) => {
 			const user = await repo.findOne(id);
+			if (!user) {
+				throw ServiceError.createUserNotFound();
+			}
+			return user;
+		},
+		findByEmail: async (email: string) => {
+			const user = await repo.findByEmail(email);
 			if (!user) {
 				throw ServiceError.createUserNotFound();
 			}

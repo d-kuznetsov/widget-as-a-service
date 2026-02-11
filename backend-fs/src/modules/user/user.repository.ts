@@ -18,6 +18,7 @@ import { UserUpdateInput } from './user.schema';
 export interface UserRepository {
 	create: (newUser: NewUser) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
+	findByEmail: (email: string) => Promise<User | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
 	updateRoles: (userId: number, roleNames: Role[]) => Promise<Role[]>;
@@ -71,6 +72,18 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.select()
 					.from(usersTable)
 					.where(eq(usersTable.id, id))
+					.limit(1);
+				return user ?? null;
+			} catch (error) {
+				throw new RepositoryError({ cause: error as Error });
+			}
+		},
+		findByEmail: async (email: string) => {
+			try {
+				const [user] = await db
+					.select()
+					.from(usersTable)
+					.where(eq(usersTable.email, email))
 					.limit(1);
 				return user ?? null;
 			} catch (error) {
