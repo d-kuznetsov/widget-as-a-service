@@ -51,3 +51,16 @@ export const userRolesTable = pgTable(
 	},
 	(table) => [unique().on(table.userId, table.roleId)]
 );
+
+export const refreshTokensTable = pgTable('refresh_tokens', {
+	id: integer().primaryKey().generatedAlwaysAsIdentity(),
+	userId: integer()
+		.notNull()
+		.references(() => usersTable.id, { onDelete: 'cascade' }),
+	token: varchar('token', { length: 1024 }).notNull(),
+	expiresAt: timestamp('expires_at').notNull(),
+	...timestamps,
+});
+
+export type NewRefreshToken = typeof refreshTokensTable.$inferInsert;
+export type RefreshToken = typeof refreshTokensTable.$inferSelect;
