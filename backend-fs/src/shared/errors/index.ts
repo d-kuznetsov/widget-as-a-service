@@ -75,6 +75,8 @@ export class RepositoryError extends AppError {
 export enum ServiceErrorCode {
 	USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
 	USER_NOT_FOUND = 'USER_NOT_FOUND',
+	INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+	AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
 	SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
 }
 
@@ -98,6 +100,20 @@ export class ServiceError extends AppError {
 		return new ServiceError({
 			message: 'User not found',
 			code: ServiceErrorCode.USER_NOT_FOUND,
+			...params,
+		});
+	}
+	static createInvalidCredentials(params: Partial<AppErrorParams> = {}) {
+		return new ServiceError({
+			message: 'Invalid credentials',
+			code: ServiceErrorCode.INVALID_CREDENTIALS,
+			...params,
+		});
+	}
+	static createAuthenticationError(params: Partial<AppErrorParams> = {}) {
+		return new ServiceError({
+			message: 'Authentication error',
+			code: ServiceErrorCode.AUTHENTICATION_ERROR,
 			...params,
 		});
 	}

@@ -11,6 +11,9 @@ const mapErrorToStatusCode = (error: AppError) => {
 			return 404;
 		case ServiceErrorCode.USER_ALREADY_EXISTS:
 			return 409;
+		case ServiceErrorCode.INVALID_CREDENTIALS:
+		case ServiceErrorCode.AUTHENTICATION_ERROR:
+			return 401;
 		case RepositoryErrorCode.REPOSITORY_UNAVAILABLE:
 			return 503;
 	}
