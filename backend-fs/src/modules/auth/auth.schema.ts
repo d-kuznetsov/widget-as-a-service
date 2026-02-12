@@ -14,7 +14,9 @@ export const refreshTokenSchema = Type.Object({
 	refreshToken: Type.String(),
 });
 
-export const signOutSchema = Type.Object({});
+export const signOutSchema = Type.Object({
+	refreshToken: Type.String(),
+});
 
 export type SignInInput = Type.Static<typeof signInSchema>;
 export type SignInResponse = Type.Static<typeof signInResponseSchema>;

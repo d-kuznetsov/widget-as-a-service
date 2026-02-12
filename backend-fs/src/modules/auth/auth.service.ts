@@ -1,4 +1,5 @@
 import { User } from '../../db/schema';
+import { AuthPayload } from '../../plugins/auth.plugin';
 import { ServiceError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { UserService } from '../user/user.service';
@@ -10,11 +11,7 @@ const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
 export interface AuthServiceDeps {
 	userService: UserService;
 	authRepo: AuthRepository;
-	generateAccessToken: (payload: {
-		id: number;
-		firstName: string;
-		lastName: string;
-	}) => Promise<string>;
+	generateAccessToken: (payload: AuthPayload) => Promise<string>;
 	generateRefreshToken: (userId: number) => Promise<string>;
 }
 
@@ -42,8 +39,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 
 			const accessToken = await generateAccessToken({
 				id: user.id,
-				firstName: user.firstName,
-				lastName: user.lastName,
+				roles: ['user'],
 			});
 			const refreshToken = await generateRefreshToken(user.id);
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
@@ -64,8 +60,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			await authRepo.revokeRefreshToken(token);
 			const accessToken = await generateAccessToken({
 				id: user.id,
-				firstName: user.firstName,
-				lastName: user.lastName,
+				roles: ['user'],
 			});
 			const newRefreshToken = await generateRefreshToken(user.id);
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
