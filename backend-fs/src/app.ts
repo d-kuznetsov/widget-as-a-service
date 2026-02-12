@@ -1,5 +1,10 @@
 import { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 import {
+	createAuthRepository,
+	createAuthService,
+	initAuthRouter,
+} from './modules/auth';
+import {
 	createUserRepository,
 	createUserService,
 	initUserRouter,
@@ -21,9 +26,19 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 	});
 	await fastify.register(dbPlugin);
 	await fastify.register(authPlugin);
+	const userService = createUserService(createUserRepository(fastify.db));
 	await fastify.register(initUserRouter, {
 		prefix: '/users',
-		service: createUserService(createUserRepository(fastify.db)),
+		service: userService,
+	});
+	await fastify.register(initAuthRouter, {
+		prefix: '/auth',
+		service: createAuthService({
+			userService,
+			authRepo: createAuthRepository(fastify.db),
+			generateAccessToken: fastify.generateAccessToken.bind(fastify),
+			generateRefreshToken: fastify.generateRefreshToken.bind(fastify),
+		}),
 	});
 };
 
