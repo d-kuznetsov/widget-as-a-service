@@ -27,33 +27,43 @@ export default fp(async (fastify) => {
 		revokedTokens.set(this.user.jti, true);
 	});
 
-	fastify.decorateRequest(
-		'generateToken',
-		async function (this: FastifyRequest) {
-			const token = await fastify.jwt.sign(
-				{
-					id: this.user.id,
-					firstName: this.user.firstName,
-					lastName: this.user.lastName,
-				},
-				{
-					jti: String(Date.now()),
-					expiresIn: '1h', //fastify.config.JWT_EXPIRE_IN,
-				}
+	fastify.decorate(
+		'generateAccessToken',
+		async (payload: { id: number; firstName: string; lastName: string }) => {
+			return fastify.jwt.sign(
+				{ ...payload, sub: payload.id },
+				{ jti: String(Date.now()), expiresIn: '1h' }
 			);
-
-			return token;
 		}
 	);
+
+	fastify.decorate('generateRefreshToken', async (userId: number) => {
+		return fastify.jwt.sign(
+			{ sub: userId },
+			{ jti: String(Date.now()), expiresIn: '7d' }
+		);
+	});
 });
 
 declare module 'fastify' {
-	export interface FastifyInstance {}
+	export interface FastifyInstance {
+		generateAccessToken: (payload: {
+			id: number;
+			firstName: string;
+			lastName: string;
+		}) => Promise<string>;
+		generateRefreshToken: (userId: number) => Promise<string>;
+	}
 }
 
 declare module '@fastify/jwt' {
 	interface FastifyJWT {
-		payload: { id: number; firstName: string; lastName: string }; // payload type is used for signing and verifying
+		payload: {
+			sub?: number;
+			id?: number;
+			firstName?: string;
+			lastName?: string;
+		};
 		user: {
 			id: number;
 			firstName: string;
