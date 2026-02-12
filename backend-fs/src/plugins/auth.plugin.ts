@@ -7,6 +7,10 @@ export interface AuthPayload {
 	roles: string[];
 }
 
+export type GenerateTokenOptions =
+	| { type: 'access'; payload: AuthPayload }
+	| { type: 'refresh'; userId: number };
+
 export default fp(async (fastify) => {
 	fastify.register(fastifyJwt, {
 		secret: fastify.config.JWT_SECRET,
@@ -26,25 +30,25 @@ export default fp(async (fastify) => {
 		}
 	);
 
-	fastify.decorate('generateAccessToken', async (payload: AuthPayload) => {
-		return fastify.jwt.sign(
-			{ ...payload, sub: payload.id },
-			{ jti: String(Date.now()), expiresIn: '1h' }
-		);
-	});
-
-	fastify.decorate('generateRefreshToken', async (userId: number) => {
-		return fastify.jwt.sign(
-			{ sub: userId },
-			{ jti: String(Date.now()), expiresIn: '7d' }
-		);
-	});
+	fastify.decorate(
+		'generateToken',
+		async (options: GenerateTokenOptions): Promise<string> => {
+			const jti = String(Date.now());
+			if (options.type === 'access') {
+				const { id, ...rest } = options.payload;
+				return fastify.jwt.sign({ ...rest, sub: id }, { jti, expiresIn: '1h' });
+			}
+			return fastify.jwt.sign(
+				{ sub: options.userId },
+				{ jti, expiresIn: '7d' }
+			);
+		}
+	);
 });
 
 declare module 'fastify' {
 	export interface FastifyInstance {
-		generateAccessToken: (payload: AuthPayload) => Promise<string>;
-		generateRefreshToken: (userId: number) => Promise<string>;
+		generateToken: (options: GenerateTokenOptions) => Promise<string>;
 		authenticate: (
 			request: FastifyRequest,
 			reply: FastifyReply

@@ -1,5 +1,5 @@
 import { User } from '../../db/schema';
-import { AuthPayload } from '../../plugins/auth.plugin';
+import { GenerateTokenOptions } from '../../plugins/auth.plugin';
 import { ServiceError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { UserService } from '../user/user.service';
@@ -11,8 +11,7 @@ const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
 export interface AuthServiceDeps {
 	userService: UserService;
 	authRepo: AuthRepository;
-	generateAccessToken: (payload: AuthPayload) => Promise<string>;
-	generateRefreshToken: (userId: number) => Promise<string>;
+	generateToken: (options: GenerateTokenOptions) => Promise<string>;
 }
 
 export interface AuthService {
@@ -23,8 +22,7 @@ export interface AuthService {
 }
 
 export function createAuthService(deps: AuthServiceDeps): AuthService {
-	const { userService, authRepo, generateAccessToken, generateRefreshToken } =
-		deps;
+	const { userService, authRepo, generateToken } = deps;
 
 	return {
 		signIn: async (email, password) => {
@@ -37,11 +35,14 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const ok = await verifyPassword(password, user.passwordHash);
 			if (!ok) throw ServiceError.createInvalidCredentials();
 
-			const accessToken = await generateAccessToken({
-				id: user.id,
-				roles: ['user'],
+			const accessToken = await generateToken({
+				type: 'access',
+				payload: { id: user.id, roles: ['user'] },
 			});
-			const refreshToken = await generateRefreshToken(user.id);
+			const refreshToken = await generateToken({
+				type: 'refresh',
+				userId: user.id,
+			});
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
 			await authRepo.saveRefreshToken({
 				userId: user.id,
@@ -58,11 +59,14 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			}
 			const user = await userService.findOne(data.userId);
 			await authRepo.revokeRefreshToken(token);
-			const accessToken = await generateAccessToken({
-				id: user.id,
-				roles: ['user'],
+			const accessToken = await generateToken({
+				type: 'access',
+				payload: { id: user.id, roles: ['user'] },
 			});
-			const newRefreshToken = await generateRefreshToken(user.id);
+			const newRefreshToken = await generateToken({
+				type: 'refresh',
+				userId: user.id,
+			});
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
 			await authRepo.saveRefreshToken({
 				userId: user.id,

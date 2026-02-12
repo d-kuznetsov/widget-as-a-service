@@ -12,6 +12,15 @@ Content-Type: {{contentType}}
   "lastName": "Doe"
 }
 
+### Sign in
+POST {{baseUrl}}/auth/sign-in
+Content-Type: {{contentType}}
+
+{
+  "email": "user@example.com",
+  "password": "P@ssw0rd"
+}
+
 ### Get user by id
 GET {{baseUrl}}/users/1
 
