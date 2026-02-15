@@ -2,6 +2,7 @@ import { User } from '../../db/schema';
 import { GenerateTokenOptions } from '../../plugins/auth.plugin';
 import { ServiceError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
+import { hashToken } from '../../shared/utils/token';
 import { UserService } from '../user/user.service';
 import { AuthRepository } from './auth.repository';
 import { SignInResponse } from './auth.schema';
@@ -46,19 +47,20 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
 			await authRepo.saveRefreshToken({
 				userId: user.id,
-				token: refreshToken,
+				token: hashToken(refreshToken),
 				expiresAt,
 			});
 			return { accessToken, refreshToken };
 		},
 
 		refreshToken: async (token) => {
-			const data = await authRepo.findRefreshToken(token);
+			const tokenHash = hashToken(token);
+			const data = await authRepo.findRefreshToken(tokenHash);
 			if (!data || data.expiresAt < new Date()) {
 				throw ServiceError.createInvalidCredentials();
 			}
 			const user = await userService.findOne(data.userId);
-			await authRepo.revokeRefreshToken(token);
+			await authRepo.revokeRefreshToken(tokenHash);
 			const accessToken = await generateToken({
 				type: 'access',
 				payload: { id: user.id, roles: ['user'] },
@@ -70,14 +72,14 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
 			await authRepo.saveRefreshToken({
 				userId: user.id,
-				token: newRefreshToken,
+				token: hashToken(newRefreshToken),
 				expiresAt,
 			});
 			return { accessToken, refreshToken: newRefreshToken };
 		},
 
 		signOut: async (token) => {
-			await authRepo.revokeRefreshToken(token);
+			await authRepo.revokeRefreshToken(hashToken(token));
 		},
 
 		signOutAll: async (userId) => {
