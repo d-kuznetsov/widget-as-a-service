@@ -1,4 +1,5 @@
 import {
+	foreignKey,
 	integer,
 	pgTable,
 	timestamp,
@@ -52,15 +53,26 @@ export const userRolesTable = pgTable(
 	(table) => [unique().on(table.userId, table.roleId)]
 );
 
-export const refreshTokensTable = pgTable('refresh_tokens', {
-	id: integer().primaryKey().generatedAlwaysAsIdentity(),
-	userId: integer()
-		.notNull()
-		.references(() => usersTable.id, { onDelete: 'cascade' }),
-	token: varchar('token', { length: 1024 }).notNull(),
-	expiresAt: timestamp('expires_at').notNull(),
-	...timestamps,
-});
+export const refreshTokensTable = pgTable(
+	'refresh_tokens',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		userId: integer()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		token: varchar('token', { length: 1024 }).notNull(),
+		expiresAt: timestamp('expires_at').notNull(),
+		revokedAt: timestamp('revoked_at'),
+		replacedBy: integer('replaced_by'),
+		...timestamps,
+	},
+	(table) => [
+		foreignKey({
+			columns: [table.replacedBy],
+			foreignColumns: [table.id],
+		}).onDelete('cascade'),
+	]
+);
 
 export type NewRefreshToken = typeof refreshTokensTable.$inferInsert;
 export type RefreshToken = typeof refreshTokensTable.$inferSelect;
