@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { refreshTokensTable } from '../../db/schema';
+import { hashToken } from '../../shared/utils/token';
 
 export interface AuthRepository {
 	saveRefreshToken: (input: {
@@ -18,24 +19,29 @@ export interface AuthRepository {
 export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 	return {
 		saveRefreshToken: async (input) => {
-			await db.insert(refreshTokensTable).values(input);
+			await db.insert(refreshTokensTable).values({
+				...input,
+				token: hashToken(input.token),
+			});
 		},
 		findRefreshToken: async (token) => {
+			const tokenHash = hashToken(token);
 			const [row] = await db
 				.select({
 					userId: refreshTokensTable.userId,
 					expiresAt: refreshTokensTable.expiresAt,
 				})
 				.from(refreshTokensTable)
-				.where(eq(refreshTokensTable.token, token))
+				.where(eq(refreshTokensTable.token, tokenHash))
 				.limit(1);
 			if (!row) return null;
 			return { userId: row.userId, expiresAt: row.expiresAt };
 		},
 		revokeRefreshToken: async (token) => {
+			const tokenHash = hashToken(token);
 			await db
 				.delete(refreshTokensTable)
-				.where(eq(refreshTokensTable.token, token));
+				.where(eq(refreshTokensTable.token, tokenHash));
 		},
 		revokeAllUserTokens: async (userId) => {
 			await db
