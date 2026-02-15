@@ -60,7 +60,7 @@ export const refreshTokensTable = pgTable(
 		userId: integer()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: 'cascade' }),
-		token: varchar('token', { length: 1024 }).notNull(),
+		token: varchar('token_hash', { length: 1024 }).notNull(),
 		expiresAt: timestamp('expires_at').notNull(),
 		revokedAt: timestamp('revoked_at'),
 		replacedBy: integer('replaced_by'),
