@@ -1,6 +1,9 @@
+import { randomBytes } from 'node:crypto';
 import fastifyJwt from '@fastify/jwt';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
+
+const REFRESH_TOKEN_BYTES = 32;
 
 export interface AuthPayload {
 	id: number;
@@ -33,15 +36,12 @@ export default fp(async (fastify) => {
 	fastify.decorate(
 		'generateToken',
 		async (options: GenerateTokenOptions): Promise<string> => {
-			const jti = String(Date.now());
 			if (options.type === 'access') {
+				const jti = String(Date.now());
 				const { id, ...rest } = options.payload;
 				return fastify.jwt.sign({ ...rest, sub: id }, { jti, expiresIn: '1h' });
 			}
-			return fastify.jwt.sign(
-				{ sub: options.userId },
-				{ jti, expiresIn: '7d' }
-			);
+			return randomBytes(REFRESH_TOKEN_BYTES).toString('hex');
 		}
 	);
 });
