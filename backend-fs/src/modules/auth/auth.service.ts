@@ -18,8 +18,8 @@ export interface AuthServiceDeps {
 export interface AuthService {
 	signIn: (email: string, password: string) => Promise<SignInResponse>;
 	refreshToken: (token: string) => Promise<SignInResponse>;
-	signOut: (token: string) => Promise<void>;
-	signOutAll: (userId: number) => Promise<void>;
+	logout: (token: string) => Promise<void>;
+	logoutAll: (userId: number) => Promise<void>;
 }
 
 export function createAuthService(deps: AuthServiceDeps): AuthService {
@@ -82,11 +82,11 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			return { accessToken, refreshToken: newRefreshToken };
 		},
 
-		signOut: async (token) => {
+		logout: async (token) => {
 			await authRepo.revokeRefreshToken(hashToken(token));
 		},
 
-		signOutAll: async (userId) => {
+		logoutAll: async (userId) => {
 			await authRepo.revokeAllUserTokens(userId);
 		},
 	};

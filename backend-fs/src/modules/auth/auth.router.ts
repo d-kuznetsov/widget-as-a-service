@@ -18,7 +18,7 @@ export async function initAuthRouter(
 ) {
 	const { service } = options;
 
-	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/sign-in', {
+	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/login', {
 		schema: {
 			body: signInSchema,
 			response: { 200: signInResponseSchema },
@@ -40,21 +40,21 @@ export async function initAuthRouter(
 		},
 	});
 
-	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/sign-out', {
+	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/logout', {
 		schema: {
 			body: signOutSchema,
 		},
 		onRequest: [fastify.authenticate],
 		handler: async (request, reply) => {
-			await service.signOut(request.body.refreshToken);
+			await service.logout(request.body.refreshToken);
 			reply.code(204);
 		},
 	});
 
-	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/sign-out-all', {
+	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/logout-all', {
 		preHandler: [fastify.authenticate],
 		handler: async (request, reply) => {
-			await service.signOutAll(request.user.id);
+			await service.logoutAll(request.user.id);
 			reply.code(204);
 		},
 	});
