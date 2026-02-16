@@ -64,7 +64,7 @@ export const refreshTokensTable = pgTable(
 		expiresAt: timestamp('expires_at').notNull(),
 		revokedAt: timestamp('revoked_at'),
 		replacedBy: integer('replaced_by'),
-		...timestamps,
+		createdAt: timestamps.createdAt,
 	},
 	(table) => [
 		foreignKey({

@@ -45,7 +45,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 				userId: user.id,
 			});
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
-			await authRepo.saveRefreshToken({
+			await authRepo.createRefreshToken({
 				userId: user.id,
 				token: hashToken(refreshToken),
 				expiresAt,
@@ -53,27 +53,31 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			return { accessToken, refreshToken };
 		},
 
-		refreshToken: async (token) => {
-			const tokenHash = hashToken(token);
-			const data = await authRepo.findRefreshToken(tokenHash);
-			if (!data || data.expiresAt < new Date()) {
+		refreshToken: async (oldToken) => {
+			const oldTokenHash = hashToken(oldToken);
+			const oldTokenRecord =
+				await authRepo.findByRefreshTokenHash(oldTokenHash);
+			if (!oldTokenRecord || oldTokenRecord.expiresAt < new Date()) {
 				throw ServiceError.createInvalidCredentials();
 			}
-			const user = await userService.findOne(data.userId);
-			await authRepo.revokeRefreshToken(tokenHash);
-			const accessToken = await generateToken({
-				type: 'access',
-				payload: { id: user.id, roles: ['user'] },
-			});
+			if (oldTokenRecord.revokedAt) {
+				throw ServiceError.createRevokedTokenReuse();
+			}
 			const newRefreshToken = await generateToken({
 				type: 'refresh',
-				userId: user.id,
+				userId: oldTokenRecord.userId,
 			});
-			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
-			await authRepo.saveRefreshToken({
-				userId: user.id,
-				token: hashToken(newRefreshToken),
-				expiresAt,
+			const newTokenRecord = await authRepo.rotateRefreshToken(
+				oldTokenRecord.id,
+				{
+					userId: oldTokenRecord.userId,
+					token: hashToken(newRefreshToken),
+					expiresAt: new Date(Date.now() + REFRESH_TOKEN_MS),
+				}
+			);
+			const accessToken = await generateToken({
+				type: 'access',
+				payload: { id: newTokenRecord.userId, roles: ['user'] },
 			});
 			return { accessToken, refreshToken: newRefreshToken };
 		},

@@ -21,6 +21,14 @@ Content-Type: {{contentType}}
   "password": "P@ssw0rd"
 }
 
+### Refresh token
+POST {{baseUrl}}/auth/refresh
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "195d1a6e4178f9a3723a08b4652f7c79ecfd935d969d0719920baa66c8888598"
+}
+
 ### Get user by id
 GET {{baseUrl}}/users/1
 

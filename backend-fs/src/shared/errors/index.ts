@@ -78,6 +78,7 @@ export enum ServiceErrorCode {
 	INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
 	AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
 	SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+	REVOKED_TOKEN_REUSE = 'REVOKED_TOKEN_REUSE',
 }
 
 export class ServiceError extends AppError {
@@ -114,6 +115,14 @@ export class ServiceError extends AppError {
 		return new ServiceError({
 			message: 'Authentication error',
 			code: ServiceErrorCode.AUTHENTICATION_ERROR,
+			...params,
+		});
+	}
+
+	static createRevokedTokenReuse(params: Partial<AppErrorParams> = {}) {
+		return new ServiceError({
+			message: 'Revoked token reuse',
+			code: ServiceErrorCode.REVOKED_TOKEN_REUSE,
 			...params,
 		});
 	}

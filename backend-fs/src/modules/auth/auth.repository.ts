@@ -1,24 +1,26 @@
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { refreshTokensTable } from '../../db/schema';
+import {
+	NewRefreshToken,
+	RefreshToken,
+	refreshTokensTable,
+} from '../../db/schema';
 import { RepositoryError } from '../../shared/errors';
 
 export interface AuthRepository {
-	saveRefreshToken: (input: {
-		userId: number;
-		token: string;
-		expiresAt: Date;
-	}) => Promise<number>;
-	findRefreshToken: (
-		token: string
-	) => Promise<{ userId: number; expiresAt: Date } | null>;
+	createRefreshToken: (input: NewRefreshToken) => Promise<number>;
+	findByRefreshTokenHash: (tokenHash: string) => Promise<RefreshToken | null>;
+	rotateRefreshToken: (
+		oldTokenId: number,
+		newTokenInput: NewRefreshToken
+	) => Promise<RefreshToken>;
 	revokeRefreshToken: (token: string) => Promise<void>;
 	revokeAllUserTokens: (userId: number) => Promise<void>;
 }
 
 export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 	return {
-		saveRefreshToken: async (input) => {
+		createRefreshToken: async (input: NewRefreshToken) => {
 			try {
 				const [token] = await db
 					.insert(refreshTokensTable)
@@ -29,17 +31,37 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 				throw new RepositoryError({ cause: error as Error });
 			}
 		},
-		findRefreshToken: async (hash) => {
+		findByRefreshTokenHash: async (tokenHash) => {
 			try {
 				const [token] = await db
-					.select({
-						userId: refreshTokensTable.userId,
-						expiresAt: refreshTokensTable.expiresAt,
-					})
+					.select()
 					.from(refreshTokensTable)
-					.where(eq(refreshTokensTable.token, hash))
+					.where(eq(refreshTokensTable.token, tokenHash))
 					.limit(1);
 				return token ?? null;
+			} catch (error) {
+				throw new RepositoryError({ cause: error as Error });
+			}
+		},
+		rotateRefreshToken: async (
+			oldTokenId: number,
+			newTokenInput: NewRefreshToken
+		) => {
+			try {
+				return db.transaction(async (tx) => {
+					const [newToken] = await tx
+						.insert(refreshTokensTable)
+						.values(newTokenInput)
+						.returning();
+					await tx
+						.update(refreshTokensTable)
+						.set({
+							replacedBy: newToken.id,
+							revokedAt: new Date(),
+						})
+						.where(eq(refreshTokensTable.id, oldTokenId));
+					return newToken;
+				});
 			} catch (error) {
 				throw new RepositoryError({ cause: error as Error });
 			}
@@ -47,7 +69,8 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 		revokeRefreshToken: async (token) => {
 			try {
 				await db
-					.delete(refreshTokensTable)
+					.update(refreshTokensTable)
+					.set({ revokedAt: new Date() })
 					.where(eq(refreshTokensTable.token, token));
 			} catch (error) {
 				throw new RepositoryError({ cause: error as Error });
@@ -56,7 +79,8 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 		revokeAllUserTokens: async (userId) => {
 			try {
 				await db
-					.delete(refreshTokensTable)
+					.update(refreshTokensTable)
+					.set({ revokedAt: new Date() })
 					.where(eq(refreshTokensTable.userId, userId));
 			} catch (error) {
 				throw new RepositoryError({ cause: error as Error });
