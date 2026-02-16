@@ -5,7 +5,7 @@ import { verifyPassword } from '../../shared/utils/password';
 import { hashToken } from '../../shared/utils/token';
 import { UserService } from '../user/user.service';
 import { AuthRepository } from './auth.repository';
-import { SignInResponse } from './auth.schema';
+import { LoginResponse } from './auth.schema';
 
 const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -16,8 +16,8 @@ export interface AuthServiceDeps {
 }
 
 export interface AuthService {
-	signIn: (email: string, password: string) => Promise<SignInResponse>;
-	refreshToken: (token: string) => Promise<SignInResponse>;
+	login: (email: string, password: string) => Promise<LoginResponse>;
+	refreshToken: (token: string) => Promise<LoginResponse>;
 	logout: (token: string) => Promise<void>;
 	logoutAll: (userId: number) => Promise<void>;
 }
@@ -26,7 +26,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 	const { userService, authRepo, generateToken } = deps;
 
 	return {
-		signIn: async (email, password) => {
+		login: async (email, password) => {
 			let user: User;
 			try {
 				user = await userService.findByEmail(email);

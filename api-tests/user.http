@@ -12,7 +12,7 @@ Content-Type: {{contentType}}
   "lastName": "Doe"
 }
 
-### Sign in
+### Login
 POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 

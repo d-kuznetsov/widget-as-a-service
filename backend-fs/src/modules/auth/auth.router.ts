@@ -1,10 +1,10 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import {
+	loginResponseSchema,
+	loginSchema,
+	logoutSchema,
 	refreshTokenSchema,
-	signInResponseSchema,
-	signInSchema,
-	signOutSchema,
 } from './auth.schema';
 import { AuthService } from './auth.service';
 
@@ -20,12 +20,12 @@ export async function initAuthRouter(
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/login', {
 		schema: {
-			body: signInSchema,
-			response: { 200: signInResponseSchema },
+			body: loginSchema,
+			response: { 200: loginResponseSchema },
 		},
 		handler: async (request) => {
 			const { email, password } = request.body;
-			const tokens = await service.signIn(email, password);
+			const tokens = await service.login(email, password);
 			return tokens;
 		},
 	});
@@ -33,7 +33,7 @@ export async function initAuthRouter(
 	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/refresh', {
 		schema: {
 			body: refreshTokenSchema,
-			response: { 200: signInResponseSchema },
+			response: { 200: loginResponseSchema },
 		},
 		handler: async (request) => {
 			return service.refreshToken(request.body.refreshToken);
@@ -42,7 +42,7 @@ export async function initAuthRouter(
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/logout', {
 		schema: {
-			body: signOutSchema,
+			body: logoutSchema,
 		},
 		onRequest: [fastify.authenticate],
 		handler: async (request, reply) => {
