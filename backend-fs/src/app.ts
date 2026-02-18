@@ -36,7 +36,7 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 		service: createAuthService({
 			userService,
 			authRepo: createAuthRepository(fastify.db),
-			generateToken: fastify.generateToken.bind(fastify),
+			generateAccessToken: fastify.generateAccessToken.bind(fastify),
 		}),
 	});
 };

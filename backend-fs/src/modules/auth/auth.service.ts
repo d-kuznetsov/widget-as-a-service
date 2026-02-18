@@ -1,5 +1,5 @@
+import { randomBytes } from 'node:crypto';
 import { User } from '../../db/schema';
-import { GenerateTokenOptions } from '../../plugins/auth.plugin';
 import { ServiceError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { hashToken } from '../../shared/utils/token';
@@ -8,22 +8,27 @@ import { AuthRepository } from './auth.repository';
 import { LoginResponse } from './auth.schema';
 
 const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_BYTES = 32;
 
 export interface AuthServiceDeps {
 	userService: UserService;
 	authRepo: AuthRepository;
-	generateToken: (options: GenerateTokenOptions) => Promise<string>;
+	generateAccessToken: (userId: number, scope: string[]) => Promise<string>;
 }
 
 export interface AuthService {
 	login: (email: string, password: string) => Promise<LoginResponse>;
-	refreshToken: (token: string) => Promise<LoginResponse>;
+	refresh: (token: string) => Promise<LoginResponse>;
 	logout: (token: string) => Promise<void>;
 	logoutAll: (userId: number) => Promise<void>;
 }
 
+function generateRefreshToken(): string {
+	return randomBytes(REFRESH_TOKEN_BYTES).toString('hex');
+}
+
 export function createAuthService(deps: AuthServiceDeps): AuthService {
-	const { userService, authRepo, generateToken } = deps;
+	const { userService, authRepo, generateAccessToken } = deps;
 
 	return {
 		login: async (email, password) => {
@@ -36,14 +41,8 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const ok = await verifyPassword(password, user.passwordHash);
 			if (!ok) throw ServiceError.createInvalidCredentials();
 
-			const accessToken = await generateToken({
-				type: 'access',
-				payload: { id: user.id, roles: ['user'] },
-			});
-			const refreshToken = await generateToken({
-				type: 'refresh',
-				userId: user.id,
-			});
+			const accessToken = await generateAccessToken(user.id, ['user']);
+			const refreshToken = generateRefreshToken();
 			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
 			await authRepo.createRefreshToken({
 				userId: user.id,
@@ -53,7 +52,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			return { accessToken, refreshToken };
 		},
 
-		refreshToken: async (oldToken) => {
+		refresh: async (oldToken) => {
 			const oldTokenHash = hashToken(oldToken);
 			const oldTokenRecord =
 				await authRepo.findByRefreshTokenHash(oldTokenHash);
@@ -63,10 +62,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			if (oldTokenRecord.revokedAt) {
 				throw ServiceError.createRevokedTokenReuse();
 			}
-			const newRefreshToken = await generateToken({
-				type: 'refresh',
-				userId: oldTokenRecord.userId,
-			});
+			const newRefreshToken = generateRefreshToken();
 			const newTokenRecord = await authRepo.rotateRefreshToken(
 				oldTokenRecord.id,
 				{
@@ -75,10 +71,9 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 					expiresAt: new Date(Date.now() + REFRESH_TOKEN_MS),
 				}
 			);
-			const accessToken = await generateToken({
-				type: 'access',
-				payload: { id: newTokenRecord.userId, roles: ['user'] },
-			});
+			const accessToken = await generateAccessToken(newTokenRecord.userId, [
+				'user',
+			]);
 			return { accessToken, refreshToken: newRefreshToken };
 		},
 
