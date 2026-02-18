@@ -1,0 +1,33 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJ1c2VyIl0sInN1YiI6MzEsImp0aSI6IjE3NzE0NDM5NDk4MDAiLCJpYXQiOjE3NzE0NDM5NDksImV4cCI6MTc3MTQ0NzU0OX0.4CXunkL_U6wLdX4ZmkXYSKhuVQ9toNtiSbrJykW1l2w
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: {{contentType}}
+
+{
+  "email": "user@example.com",
+  "password": "P@ssw0rd"
+}
+
+### Refresh token
+POST {{baseUrl}}/auth/refresh
+Content-Type: {{contentType}}
+
+{
+  "refreshToken": "c64a74ac69972e4cff2261204ea2e4a96baf8985ea40ae05cf0bdcf3b172089d"
+}
+
+### Logout (invalidate single refresh token)
+POST {{baseUrl}}/auth/logout
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "refreshToken": "c64a74ac69972e4cff2261204ea2e4a96baf8985ea40ae05cf0bdcf3b172089d"
+}
+
+### Logout all sessions
+POST {{baseUrl}}/auth/logout-all
+Authorization: Bearer {{accessToken}}
