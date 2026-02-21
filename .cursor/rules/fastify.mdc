@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+- When creating a new module inside backend-fs/src/modules use backend-fs/src/modules/user as an example
