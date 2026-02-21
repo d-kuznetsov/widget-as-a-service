@@ -170,3 +170,5 @@ backend/build/
 # Temporary folders
 tmp/
 temp/
+
+frontend/*.html
