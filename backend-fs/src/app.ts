@@ -5,6 +5,11 @@ import {
 	initAuthRouter,
 } from './modules/auth';
 import {
+	createTenantRepository,
+	createTenantService,
+	initTenantRouter,
+} from './modules/tenant';
+import {
 	createUserRepository,
 	createUserService,
 	initUserRouter,
@@ -40,6 +45,11 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 			authRepo: createAuthRepository(fastify.db),
 			generateAccessToken: fastify.generateAccessToken.bind(fastify),
 		}),
+	});
+	const tenantService = createTenantService(createTenantRepository(fastify.db));
+	await fastify.register(initTenantRouter, {
+		prefix: '/tenants',
+		service: tenantService,
 	});
 };
 

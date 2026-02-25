@@ -1,0 +1,34 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Create tenant
+POST {{baseUrl}}/tenants
+Content-Type: {{contentType}}
+
+{
+  "name": "Acme Corp",
+  "address": "123 Main St"
+}
+
+### Create tenant (minimal)
+POST {{baseUrl}}/tenants
+Content-Type: {{contentType}}
+
+{
+  "name": "Minimal Tenant"
+}
+
+### Get tenant by id
+GET {{baseUrl}}/tenants/1
+
+### Update tenant
+PUT {{baseUrl}}/tenants/1
+Content-Type: {{contentType}}
+
+{
+  "name": "Acme Corp Updated",
+  "address": "456 Oak Ave"
+}
+
+### Delete tenant
+DELETE {{baseUrl}}/tenants/1

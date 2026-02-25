@@ -79,6 +79,7 @@ export enum ServiceErrorCode {
 	AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
 	SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
 	REVOKED_TOKEN_REUSE = 'REVOKED_TOKEN_REUSE',
+	TENANT_NOT_FOUND = 'TENANT_NOT_FOUND',
 }
 
 export class ServiceError extends AppError {
@@ -123,6 +124,14 @@ export class ServiceError extends AppError {
 		return new ServiceError({
 			message: 'Revoked token reuse',
 			code: ServiceErrorCode.REVOKED_TOKEN_REUSE,
+			...params,
+		});
+	}
+
+	static createTenantNotFound(params: Partial<AppErrorParams> = {}) {
+		return new ServiceError({
+			message: 'Tenant not found',
+			code: ServiceErrorCode.TENANT_NOT_FOUND,
 			...params,
 		});
 	}

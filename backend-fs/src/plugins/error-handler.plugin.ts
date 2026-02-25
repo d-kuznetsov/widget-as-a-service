@@ -8,6 +8,7 @@ import {
 const mapErrorToStatusCode = (error: AppError) => {
 	switch (error.code) {
 		case ServiceErrorCode.USER_NOT_FOUND:
+		case ServiceErrorCode.TENANT_NOT_FOUND:
 			return 404;
 		case ServiceErrorCode.USER_ALREADY_EXISTS:
 			return 409;
