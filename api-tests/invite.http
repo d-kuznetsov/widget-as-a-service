@@ -1,0 +1,12 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+### Create invite
+POST {{baseUrl}}/invites
+Content-Type: {{contentType}}
+
+{
+  "email": "invitee@example.com",
+  "tenantId": 2,
+  "role": 1
+}

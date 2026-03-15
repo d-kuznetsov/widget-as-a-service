@@ -1,4 +1,5 @@
 import {
+	boolean,
 	foreignKey,
 	integer,
 	pgTable,
@@ -87,3 +88,25 @@ export const tenantsTable = pgTable('tenants', {
 
 export type NewTenant = typeof tenantsTable.$inferInsert;
 export type Tenant = typeof tenantsTable.$inferSelect;
+
+export const invitesTable = pgTable(
+	'invites',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer()
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		email: varchar('email', { length: 255 }).notNull(),
+		token: varchar('token', { length: 255 }).notNull(),
+		role: integer()
+			.notNull()
+			.references(() => rolesTable.id, { onDelete: 'cascade' }),
+		expiresAt: timestamp('expires_at').notNull(),
+		used: boolean('used').notNull().default(false),
+		createdAt: timestamps.createdAt,
+	},
+	(table) => [unique().on(table.tenantId, table.email)]
+);
+
+export type NewInvite = typeof invitesTable.$inferInsert;
+export type Invite = typeof invitesTable.$inferSelect;
