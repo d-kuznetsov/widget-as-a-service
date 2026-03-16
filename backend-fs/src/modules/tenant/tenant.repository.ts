@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Tenant, tenantsTable } from '../../db/schema';
-import { RepositoryError } from '../../shared/errors';
+import { DataBaseError } from '../../shared/errors';
 import { TenantCreateInput, TenantUpdateInput } from './tenant.schema';
 
 export interface TenantRepository {
@@ -22,7 +22,7 @@ export function createTenantRepository(db: NodePgDatabase): TenantRepository {
 					.returning();
 				return tenant;
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		findOne: async (id: number) => {
@@ -34,14 +34,14 @@ export function createTenantRepository(db: NodePgDatabase): TenantRepository {
 					.limit(1);
 				return tenant ?? null;
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		findAll: async () => {
 			try {
 				return await db.select().from(tenantsTable);
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		update: async (id: number, tenant: TenantUpdateInput) => {
@@ -53,7 +53,7 @@ export function createTenantRepository(db: NodePgDatabase): TenantRepository {
 					.returning();
 				return updatedTenant ?? null;
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		delete: async (id: number) => {
@@ -64,7 +64,7 @@ export function createTenantRepository(db: NodePgDatabase): TenantRepository {
 					.returning();
 				return deletedTenant ?? null;
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 	};

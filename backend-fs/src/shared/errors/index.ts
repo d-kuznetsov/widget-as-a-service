@@ -19,60 +19,19 @@ export class AppError extends Error {
 	}
 }
 
-export enum RepositoryErrorCode {
-	ENTITY_NOT_FOUND = 'ENTITY_NOT_FOUND',
-	ENTITY_ALREADY_EXISTS = 'ENTITY_ALREADY_EXISTS',
-	FOREIGN_KEY_VIOLATION = 'FOREIGN_KEY_VIOLATION',
-	DATA_CONFLICT = 'DATA_CONFLICT',
-	REPOSITORY_UNAVAILABLE = 'REPOSITORY_UNAVAILABLE',
-}
+export const DATABASE_ERROR_CODE = 'DATABASE_ERROR';
 
-export class RepositoryError extends AppError {
+export class DataBaseError extends AppError {
 	constructor(params: Partial<AppErrorParams> = {}) {
 		super({
-			message: 'Repository error',
-			code: 'REPOSITORY_ERROR',
-			...params,
-		});
-	}
-	static createEntityNotFound(params: Partial<AppErrorParams> = {}) {
-		return new RepositoryError({
-			message: 'Entity not found',
-			code: RepositoryErrorCode.ENTITY_NOT_FOUND,
-			...params,
-		});
-	}
-	static createEntityAlreadyExists(params: Partial<AppErrorParams> = {}) {
-		return new RepositoryError({
-			message: 'Entity already exists',
-			code: RepositoryErrorCode.ENTITY_ALREADY_EXISTS,
-			...params,
-		});
-	}
-	static createForeignKeyViolation(params: Partial<AppErrorParams> = {}) {
-		return new RepositoryError({
-			message: 'Foreign key violation',
-			code: RepositoryErrorCode.FOREIGN_KEY_VIOLATION,
-			...params,
-		});
-	}
-	static createDataConflict(params: Partial<AppErrorParams> = {}) {
-		return new RepositoryError({
-			message: 'Data conflict',
-			code: RepositoryErrorCode.DATA_CONFLICT,
-			...params,
-		});
-	}
-	static createRepositoryUnavailable(params: Partial<AppErrorParams> = {}) {
-		return new RepositoryError({
-			message: 'Repository unavailable',
-			code: RepositoryErrorCode.REPOSITORY_UNAVAILABLE,
+			message: 'Database error',
+			code: DATABASE_ERROR_CODE,
 			...params,
 		});
 	}
 }
 
-export enum ServiceErrorCode {
+export enum DomainErrorCode {
 	USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
 	USER_NOT_FOUND = 'USER_NOT_FOUND',
 	INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
@@ -80,58 +39,56 @@ export enum ServiceErrorCode {
 	SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
 	REVOKED_TOKEN_REUSE = 'REVOKED_TOKEN_REUSE',
 	TENANT_NOT_FOUND = 'TENANT_NOT_FOUND',
+	ROLE_NOT_FOUND = 'ROLE_NOT_FOUND',
 }
 
-export class ServiceError extends AppError {
-	constructor(params: Partial<AppErrorParams> = {}) {
-		super({
-			message: 'Service error',
-			code: 'SERVICE_ERROR',
-			...params,
-		});
-	}
-
-	static createUserAlreadyExists(params: Partial<AppErrorParams> = {}) {
-		return new ServiceError({
+export class DomainError extends AppError {
+	static userAlreadyExists(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
 			message: 'User already exists',
-			code: ServiceErrorCode.USER_ALREADY_EXISTS,
+			code: DomainErrorCode.USER_ALREADY_EXISTS,
 			...params,
 		});
 	}
-	static createUserNotFound(params: Partial<AppErrorParams> = {}) {
-		return new ServiceError({
+	static userNotFound(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
 			message: 'User not found',
-			code: ServiceErrorCode.USER_NOT_FOUND,
+			code: DomainErrorCode.USER_NOT_FOUND,
 			...params,
 		});
 	}
-	static createInvalidCredentials(params: Partial<AppErrorParams> = {}) {
-		return new ServiceError({
+	static invalidCredentials(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
 			message: 'Invalid credentials',
-			code: ServiceErrorCode.INVALID_CREDENTIALS,
+			code: DomainErrorCode.INVALID_CREDENTIALS,
 			...params,
 		});
 	}
-	static createAuthenticationError(params: Partial<AppErrorParams> = {}) {
-		return new ServiceError({
+	static authenticationError(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
 			message: 'Authentication error',
-			code: ServiceErrorCode.AUTHENTICATION_ERROR,
+			code: DomainErrorCode.AUTHENTICATION_ERROR,
 			...params,
 		});
 	}
-
-	static createRevokedTokenReuse(params: Partial<AppErrorParams> = {}) {
-		return new ServiceError({
+	static revokedTokenReuse(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
 			message: 'Revoked token reuse',
-			code: ServiceErrorCode.REVOKED_TOKEN_REUSE,
+			code: DomainErrorCode.REVOKED_TOKEN_REUSE,
 			...params,
 		});
 	}
-
-	static createTenantNotFound(params: Partial<AppErrorParams> = {}) {
-		return new ServiceError({
+	static tenantNotFound(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
 			message: 'Tenant not found',
-			code: ServiceErrorCode.TENANT_NOT_FOUND,
+			code: DomainErrorCode.TENANT_NOT_FOUND,
+			...params,
+		});
+	}
+	static roleNotFound(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Role not found',
+			code: DomainErrorCode.ROLE_NOT_FOUND,
 			...params,
 		});
 	}

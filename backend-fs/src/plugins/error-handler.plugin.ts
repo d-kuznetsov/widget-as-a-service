@@ -1,22 +1,16 @@
 import fp from 'fastify-plugin';
-import {
-	AppError,
-	RepositoryErrorCode,
-	ServiceErrorCode,
-} from '../shared/errors';
+import { AppError, DomainErrorCode } from '../shared/errors';
 
 const mapErrorToStatusCode = (error: AppError) => {
 	switch (error.code) {
-		case ServiceErrorCode.USER_NOT_FOUND:
-		case ServiceErrorCode.TENANT_NOT_FOUND:
+		case DomainErrorCode.USER_NOT_FOUND:
+		case DomainErrorCode.TENANT_NOT_FOUND:
 			return 404;
-		case ServiceErrorCode.USER_ALREADY_EXISTS:
+		case DomainErrorCode.USER_ALREADY_EXISTS:
 			return 409;
-		case ServiceErrorCode.INVALID_CREDENTIALS:
-		case ServiceErrorCode.AUTHENTICATION_ERROR:
+		case DomainErrorCode.INVALID_CREDENTIALS:
+		case DomainErrorCode.AUTHENTICATION_ERROR:
 			return 401;
-		case RepositoryErrorCode.REPOSITORY_UNAVAILABLE:
-			return 503;
 	}
 	return 500;
 };

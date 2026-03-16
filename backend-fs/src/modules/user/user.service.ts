@@ -1,9 +1,5 @@
 import { User } from '../../db/schema';
-import {
-	RepositoryError,
-	RepositoryErrorCode,
-	ServiceError,
-} from '../../shared/errors';
+import { DomainError } from '../../shared/errors';
 import { hashPassword } from '../../shared/utils/password';
 import { Role } from '../../shared/utils/roles';
 import { UserRepository } from './user.repository';
@@ -26,58 +22,38 @@ export function createUserService(repo: UserRepository): UserService {
 				...rest,
 				passwordHash: await hashPassword(password),
 			};
-			try {
-				return await repo.create(newUser);
-			} catch (error) {
-				if (
-					(error as RepositoryError).code ===
-					RepositoryErrorCode.ENTITY_ALREADY_EXISTS
-				) {
-					throw ServiceError.createUserAlreadyExists({ cause: error as Error });
-				}
-				throw error;
-			}
+			return await repo.create(newUser);
 		},
 		findOne: async (id: number) => {
 			const user = await repo.findOne(id);
 			if (!user) {
-				throw ServiceError.createUserNotFound();
+				throw DomainError.userNotFound();
 			}
 			return user;
 		},
 		findByEmail: async (email: string) => {
 			const user = await repo.findByEmail(email);
 			if (!user) {
-				throw ServiceError.createUserNotFound();
+				throw DomainError.userNotFound();
 			}
 			return user;
 		},
 		update: async (id: number, input: UserUpdateInput) => {
 			const user = await repo.update(id, input);
 			if (!user) {
-				throw ServiceError.createUserNotFound();
+				throw DomainError.userNotFound();
 			}
 			return user;
 		},
 		delete: async (id: number) => {
 			const user = await repo.delete(id);
 			if (!user) {
-				throw ServiceError.createUserNotFound();
+				throw DomainError.userNotFound();
 			}
 			return user;
 		},
 		updateRoles: async (userId: number, roleNames: Role[]) => {
-			try {
-				await repo.updateRoles(userId, roleNames);
-			} catch (error) {
-				if (
-					(error as RepositoryError).code ===
-					RepositoryErrorCode.FOREIGN_KEY_VIOLATION
-				) {
-					throw ServiceError.createUserNotFound({ cause: error as Error });
-				}
-				throw error;
-			}
+			await repo.updateRoles(userId, roleNames);
 		},
 	};
 }

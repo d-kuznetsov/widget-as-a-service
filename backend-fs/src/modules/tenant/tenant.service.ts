@@ -1,5 +1,5 @@
 import { Tenant } from '../../db/schema';
-import { ServiceError } from '../../shared/errors';
+import { DomainError } from '../../shared/errors';
 import { TenantRepository } from './tenant.repository';
 import { TenantCreateInput, TenantUpdateInput } from './tenant.schema';
 
@@ -19,7 +19,7 @@ export function createTenantService(repo: TenantRepository): TenantService {
 		findOne: async (id: number) => {
 			const tenant = await repo.findOne(id);
 			if (!tenant) {
-				throw ServiceError.createTenantNotFound();
+				throw DomainError.tenantNotFound();
 			}
 			return tenant;
 		},
@@ -29,14 +29,14 @@ export function createTenantService(repo: TenantRepository): TenantService {
 		update: async (id: number, input: TenantUpdateInput) => {
 			const tenant = await repo.update(id, input);
 			if (!tenant) {
-				throw ServiceError.createTenantNotFound();
+				throw DomainError.tenantNotFound();
 			}
 			return tenant;
 		},
 		delete: async (id: number) => {
 			const tenant = await repo.delete(id);
 			if (!tenant) {
-				throw ServiceError.createTenantNotFound();
+				throw DomainError.tenantNotFound();
 			}
 			return tenant;
 		},

@@ -1,6 +1,6 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Invite, invitesTable, NewInvite } from '../../db/schema';
-import { RepositoryError } from '../../shared/errors';
+import { DataBaseError, DomainError } from '../../shared/errors';
 import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
@@ -29,17 +29,17 @@ export function createInviteRepository(db: NodePgDatabase): InviteRepository {
 					error.cause?.code === PostgresErrorCode.FOREIGN_KEY_VIOLATION
 				) {
 					if (error.cause?.detail?.includes('tenantId')) {
-						throw RepositoryError.createEntityAlreadyExists({
+						throw DomainError.tenantNotFound({
 							message: 'Tenant not found',
 						});
 					}
 					if (error.cause?.detail?.includes('role')) {
-						throw RepositoryError.createEntityAlreadyExists({
+						throw DomainError.roleNotFound({
 							message: 'Role not found',
 						});
 					}
 				}
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 	};

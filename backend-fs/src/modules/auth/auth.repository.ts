@@ -5,7 +5,7 @@ import {
 	RefreshToken,
 	refreshTokensTable,
 } from '../../db/schema';
-import { RepositoryError } from '../../shared/errors';
+import { DataBaseError } from '../../shared/errors';
 
 export interface AuthRepository {
 	createRefreshToken: (input: NewRefreshToken) => Promise<number>;
@@ -28,7 +28,7 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 					.returning();
 				return token?.id;
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		findByRefreshTokenHash: async (tokenHash) => {
@@ -40,7 +40,7 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 					.limit(1);
 				return token ?? null;
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		rotateRefreshToken: async (
@@ -63,7 +63,7 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 					return newToken;
 				});
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		revokeRefreshToken: async (token) => {
@@ -73,7 +73,7 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 					.set({ revokedAt: new Date() })
 					.where(eq(refreshTokensTable.token, token));
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 		revokeAllUserTokens: async (userId) => {
@@ -83,7 +83,7 @@ export function createAuthRepository(db: NodePgDatabase): AuthRepository {
 					.set({ revokedAt: new Date() })
 					.where(eq(refreshTokensTable.userId, userId));
 			} catch (error) {
-				throw new RepositoryError({ cause: error as Error });
+				throw new DataBaseError({ cause: error as Error });
 			}
 		},
 	};

@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { User } from '../../db/schema';
-import { ServiceError } from '../../shared/errors';
+import { DomainError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { hashToken } from '../../shared/utils/token';
 import { UserService } from '../user/user.service';
@@ -36,10 +36,10 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			try {
 				user = await userService.findByEmail(email);
 			} catch {
-				throw ServiceError.createInvalidCredentials();
+				throw DomainError.invalidCredentials();
 			}
 			const ok = await verifyPassword(password, user.passwordHash);
-			if (!ok) throw ServiceError.createInvalidCredentials();
+			if (!ok) throw DomainError.invalidCredentials();
 
 			const accessToken = await generateAccessToken(user.id, ['user']);
 			const refreshToken = generateRefreshToken();
@@ -57,10 +57,10 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const oldTokenRecord =
 				await authRepo.findByRefreshTokenHash(oldTokenHash);
 			if (!oldTokenRecord || oldTokenRecord.expiresAt < new Date()) {
-				throw ServiceError.createInvalidCredentials();
+				throw DomainError.invalidCredentials();
 			}
 			if (oldTokenRecord.revokedAt) {
-				throw ServiceError.createRevokedTokenReuse();
+				throw DomainError.revokedTokenReuse();
 			}
 			const newRefreshToken = generateRefreshToken();
 			const newTokenRecord = await authRepo.rotateRefreshToken(
