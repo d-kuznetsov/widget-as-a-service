@@ -2,6 +2,7 @@ import { User } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
 import { hashPassword } from '../../shared/utils/password';
 import { Role } from '../../shared/utils/roles';
+import { InviteService } from '../invite/invite.service';
 import { UserRepository } from './user.repository';
 import { UserCreateInput, UserUpdateInput } from './user.schema';
 
@@ -14,15 +15,28 @@ export interface UserService {
 	updateRoles: (userId: number, roleNames: Role[]) => Promise<void>;
 }
 
-export function createUserService(repo: UserRepository): UserService {
+export function createUserService(
+	repo: UserRepository,
+	inviteService: InviteService
+): UserService {
 	return {
 		create: async (input: UserCreateInput) => {
-			const { password, ...rest } = input;
+			const { password, token, ...rest } = input;
+			const invite = await inviteService.findOne(token);
+			if (!invite) {
+				throw DomainError.inviteNotFound();
+			}
+			if (invite.expiresAt < new Date()) {
+				throw DomainError.inviteExpired();
+			}
+			if (invite.used) {
+				throw DomainError.inviteAlreadyUsed();
+			}
 			const newUser = {
 				...rest,
 				passwordHash: await hashPassword(password),
 			};
-			return await repo.create(newUser);
+			return await repo.create(newUser, invite.tenantId, invite.roleId);
 		},
 		findOne: async (id: number) => {
 			const user = await repo.findOne(id);

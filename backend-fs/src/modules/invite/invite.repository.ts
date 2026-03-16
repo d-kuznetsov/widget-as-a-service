@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Invite, invitesTable, NewInvite } from '../../db/schema';
 import { DataBaseError, DomainError } from '../../shared/errors';
@@ -8,8 +9,7 @@ import {
 
 export interface InviteRepository {
 	create: (invite: NewInvite) => Promise<Invite>;
-	// findOne: (id: number) => Promise<Invite | null>;
-	// findAll: () => Promise<Invite[] | null>;
+	findOne: (token: string) => Promise<Invite | null>;
 	// update: (id: number, invite: InviteUpdateInput) => Promise<Invite | null>;
 	// delete: (id: number) => Promise<Invite | null>;
 }
@@ -39,6 +39,25 @@ export function createInviteRepository(db: NodePgDatabase): InviteRepository {
 						});
 					}
 				}
+				if (
+					isPgErrorWithCause(error) &&
+					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION
+				) {
+					throw DomainError.inviteAlreadyExists({
+						message: 'Invite already exists',
+					});
+				}
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		findOne: async (token: string) => {
+			try {
+				const [invite] = await db
+					.select()
+					.from(invitesTable)
+					.where(eq(invitesTable.token, token));
+				return invite ?? null;
+			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},

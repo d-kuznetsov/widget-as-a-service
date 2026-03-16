@@ -10,7 +10,8 @@ Content-Type: {{contentType}}
   "email": "user@example.com",
   "password": "P@ssw0rd",
   "firstName": "Jane",
-  "lastName": "Doe"
+  "lastName": "Doe",
+  "token": "a12075e19a645097de1cd91cfc03fca1cb4c7bd55015aef1f2c00c7f05c18df6"
 }
 
 ### Get user by id

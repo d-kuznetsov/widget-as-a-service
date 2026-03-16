@@ -40,6 +40,10 @@ export enum DomainErrorCode {
 	REVOKED_TOKEN_REUSE = 'REVOKED_TOKEN_REUSE',
 	TENANT_NOT_FOUND = 'TENANT_NOT_FOUND',
 	ROLE_NOT_FOUND = 'ROLE_NOT_FOUND',
+	INVITE_ALREADY_EXISTS = 'INVITE_ALREADY_EXISTS',
+	INVITE_NOT_FOUND = 'INVITE_NOT_FOUND',
+	INVITE_EXPIRED = 'INVITE_EXPIRED',
+	INVITE_ALREADY_USED = 'INVITE_ALREADY_USED',
 }
 
 export class DomainError extends AppError {
@@ -89,6 +93,34 @@ export class DomainError extends AppError {
 		return new DomainError({
 			message: 'Role not found',
 			code: DomainErrorCode.ROLE_NOT_FOUND,
+			...params,
+		});
+	}
+	static inviteNotFound(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Invite not found',
+			code: DomainErrorCode.INVITE_NOT_FOUND,
+			...params,
+		});
+	}
+	static inviteExpired(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Invite expired',
+			code: DomainErrorCode.INVITE_EXPIRED,
+			...params,
+		});
+	}
+	static inviteAlreadyUsed(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Invite already used',
+			code: DomainErrorCode.INVITE_ALREADY_USED,
+			...params,
+		});
+	}
+	static inviteAlreadyExists(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Invite already exists',
+			code: DomainErrorCode.INVITE_ALREADY_EXISTS,
 			...params,
 		});
 	}

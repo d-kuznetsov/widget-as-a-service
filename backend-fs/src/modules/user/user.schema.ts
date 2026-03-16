@@ -8,6 +8,7 @@ export const userBaseSchema = Type.Object({
 });
 
 export const userCreateSchema = Type.Object({
+	token: Type.String({ minLength: 1, maxLength: 255 }),
 	password: Type.String({ minLength: 8, maxLength: 255 }),
 	...userBaseSchema.properties,
 });

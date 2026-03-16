@@ -3,6 +3,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	NewUser,
 	rolesTable,
+	tenantMembersTable,
 	User,
 	userRolesTable,
 	usersTable,
@@ -12,11 +13,11 @@ import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
 } from '../../shared/utils/pg-errors';
-import { Role, Roles } from '../../shared/utils/roles';
+import { Role } from '../../shared/utils/roles';
 import { UserUpdateInput } from './user.schema';
 
 export interface UserRepository {
-	create: (newUser: NewUser) => Promise<User>;
+	create: (newUser: NewUser, tenantId: number, roleId: number) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
 	findByEmail: (email: string) => Promise<User | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
@@ -26,30 +27,20 @@ export interface UserRepository {
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
 	return {
-		create: async (newUser: NewUser) => {
+		create: async (newUser: NewUser, tenantId: number, roleId: number) => {
 			try {
 				return await db.transaction(async (tx) => {
 					const [user] = await tx
 						.insert(usersTable)
 						.values(newUser)
 						.returning();
-					const [clientRole] = await tx
-						.select()
-						.from(rolesTable)
-						.where(eq(rolesTable.name, Roles.CLIENT))
-						.limit(1);
-					if (!clientRole) {
-						throw DomainError.roleNotFound({
-							message: `Role "${Roles.CLIENT}" not found. Ensure roles are seeded.`,
-						});
-					}
+
 					await tx
-						.insert(userRolesTable)
-						.values({ userId: user.id, roleId: clientRole.id });
+						.insert(tenantMembersTable)
+						.values({ userId: user.id, tenantId, roleId });
 					return user;
 				});
 			} catch (error) {
-				if (error instanceof AppError) throw error;
 				if (
 					isPgErrorWithCause(error) &&
 					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION
@@ -57,6 +48,16 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					if (error.cause?.detail?.includes('email')) {
 						throw DomainError.userAlreadyExists({
 							message: 'Email already exists',
+						});
+					}
+					if (error.cause?.detail?.includes('tenantId')) {
+						throw DomainError.tenantNotFound({
+							message: 'Tenant not found',
+						});
+					}
+					if (error.cause?.detail?.includes('roleId')) {
+						throw DomainError.roleNotFound({
+							message: 'Role not found',
 						});
 					}
 				}

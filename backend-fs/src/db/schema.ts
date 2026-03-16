@@ -98,7 +98,7 @@ export const invitesTable = pgTable(
 			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
 		email: varchar('email', { length: 255 }).notNull(),
 		token: varchar('token', { length: 255 }).notNull(),
-		role: integer()
+		roleId: integer('role')
 			.notNull()
 			.references(() => rolesTable.id, { onDelete: 'cascade' }),
 		expiresAt: timestamp('expires_at').notNull(),
@@ -110,3 +110,24 @@ export const invitesTable = pgTable(
 
 export type NewInvite = typeof invitesTable.$inferInsert;
 export type Invite = typeof invitesTable.$inferSelect;
+
+export const tenantMembersTable = pgTable(
+	'tenant_members',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer()
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		userId: integer()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		...timestamps,
+		roleId: integer()
+			.notNull()
+			.references(() => rolesTable.id, { onDelete: 'cascade' }),
+	},
+	(table) => [unique().on(table.tenantId, table.userId, table.roleId)]
+);
+
+export type NewTenantMember = typeof tenantMembersTable.$inferInsert;
+export type TenantMember = typeof tenantMembersTable.$inferSelect;

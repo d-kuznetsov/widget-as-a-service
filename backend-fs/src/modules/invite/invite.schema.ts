@@ -3,7 +3,7 @@ import { Type } from 'typebox';
 export const inviteBaseSchema = Type.Object({
 	email: Type.String({ format: 'email', maxLength: 255 }),
 	tenantId: Type.Number(),
-	role: Type.Number(),
+	roleId: Type.Number(),
 });
 
 export const inviteCreateSchema = Type.Object({
@@ -12,7 +12,7 @@ export const inviteCreateSchema = Type.Object({
 
 export const inviteResponseSchema = Type.Object({
 	id: Type.Number(),
-	...inviteBaseSchema.properties,
+	token: Type.String(),
 });
 
 export const inviteParamsSchema = Type.Object({

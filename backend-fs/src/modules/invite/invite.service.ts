@@ -10,6 +10,7 @@ function generateInviteToken(): string {
 }
 export interface InviteService {
 	create: (input: InviteCreateInput) => Promise<Invite>;
+	findOne: (token: string) => Promise<Invite | null>;
 }
 
 export function createInviteService(repo: InviteRepository): InviteService {
@@ -20,6 +21,9 @@ export function createInviteService(repo: InviteRepository): InviteService {
 				token: generateInviteToken(),
 				expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
 			});
+		},
+		findOne: async (token: string) => {
+			return repo.findOne(token);
 		},
 	};
 }

@@ -38,7 +38,12 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 	await fastify.register(dbPlugin);
 	await fastify.register(cookiePlugin);
 	await fastify.register(authPlugin);
-	const userService = createUserService(createUserRepository(fastify.db));
+
+	const inviteService = createInviteService(createInviteRepository(fastify.db));
+	const userService = createUserService(
+		createUserRepository(fastify.db),
+		inviteService
+	);
 	await fastify.register(initUserRouter, {
 		prefix: '/users',
 		service: userService,
@@ -56,7 +61,6 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 		prefix: '/tenants',
 		service: tenantService,
 	});
-	const inviteService = createInviteService(createInviteRepository(fastify.db));
 	await fastify.register(initInviteRouter, {
 		prefix: '/invites',
 		service: inviteService,
