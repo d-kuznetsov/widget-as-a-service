@@ -22,7 +22,7 @@ export function createUserService(
 	return {
 		create: async (input: UserCreateInput) => {
 			const { password, token, ...rest } = input;
-			const invite = await inviteService.findOne(token);
+			const invite = await inviteService.findByToken(token);
 			if (!invite) {
 				throw DomainError.inviteNotFound();
 			}

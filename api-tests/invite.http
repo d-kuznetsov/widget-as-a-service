@@ -10,3 +10,6 @@ Content-Type: {{contentType}}
   "tenantId": 2,
   "roleId": 1
 }
+
+### Delete invite
+DELETE {{baseUrl}}/invites/46

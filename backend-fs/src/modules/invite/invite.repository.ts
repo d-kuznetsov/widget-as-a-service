@@ -9,9 +9,9 @@ import {
 
 export interface InviteRepository {
 	create: (invite: NewInvite) => Promise<Invite>;
-	findOne: (token: string) => Promise<Invite | null>;
+	findByToken: (token: string) => Promise<Invite | null>;
 	// update: (id: number, invite: InviteUpdateInput) => Promise<Invite | null>;
-	// delete: (id: number) => Promise<Invite | null>;
+	delete: (id: number) => Promise<Invite | null>;
 }
 
 export function createInviteRepository(db: NodePgDatabase): InviteRepository {
@@ -50,12 +50,23 @@ export function createInviteRepository(db: NodePgDatabase): InviteRepository {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		findOne: async (token: string) => {
+		findByToken: async (token: string) => {
 			try {
 				const [invite] = await db
 					.select()
 					.from(invitesTable)
 					.where(eq(invitesTable.token, token));
+				return invite ?? null;
+			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		delete: async (id: number) => {
+			try {
+				const [invite] = await db
+					.delete(invitesTable)
+					.where(eq(invitesTable.id, id))
+					.returning();
 				return invite ?? null;
 			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
