@@ -1,7 +1,6 @@
 import { User } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
 import { hashPassword } from '../../shared/utils/password';
-import { Role } from '../../shared/utils/roles';
 import { InviteService } from '../invite/invite.service';
 import { UserRepository } from './user.repository';
 import { UserCreateInput, UserUpdateInput } from './user.schema';
@@ -12,7 +11,6 @@ export interface UserService {
 	findByEmail: (email: string) => Promise<User>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
-	updateRoles: (userId: number, roleNames: Role[]) => Promise<void>;
 }
 
 export function createUserService(
@@ -65,9 +63,6 @@ export function createUserService(
 				throw DomainError.userNotFound();
 			}
 			return user;
-		},
-		updateRoles: async (userId: number, roleNames: Role[]) => {
-			await repo.updateRoles(userId, roleNames);
 		},
 	};
 }

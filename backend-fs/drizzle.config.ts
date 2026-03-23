@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import '@dotenvx/dotenvx/config';
 import { defineConfig } from 'drizzle-kit';
 
 // @ts-expect-error - process.env is not defined in the global scope

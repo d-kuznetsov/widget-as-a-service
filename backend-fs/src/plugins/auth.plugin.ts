@@ -4,7 +4,7 @@ import fp from 'fastify-plugin';
 
 export default fp(async (fastify) => {
 	fastify.register(fastifyJwt, {
-		secret: fastify.config.JWT_SECRET,
+		secret: process.env.JWT_SECRET as string,
 	});
 
 	fastify.decorate(

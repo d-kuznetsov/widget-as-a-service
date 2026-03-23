@@ -1,8 +1,8 @@
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import fp from 'fastify-plugin';
 
-export default fp(async (fastify, opts) => {
-	const db = drizzle(fastify.config.DATABASE_URL);
+export default fp(async (fastify) => {
+	const db = drizzle(process.env.DATABASE_URL as string);
 	fastify.decorate('db', db);
 });
 

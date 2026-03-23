@@ -22,7 +22,6 @@ import {
 import authPlugin from './plugins/auth.plugin';
 import cookiePlugin from './plugins/cookie.plugin';
 import dbPlugin from './plugins/db.plugin';
-import envPlugin from './plugins/env.plugin';
 import errorHandlerPlugin from './plugins/error-handler.plugin';
 
 export interface AppOptions extends FastifyServerOptions {}
@@ -32,9 +31,6 @@ const options: AppOptions = {};
 
 const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 	await fastify.register(errorHandlerPlugin);
-	await fastify.register(envPlugin).ready(() => {
-		console.log(fastify.config);
-	});
 	await fastify.register(dbPlugin);
 	await fastify.register(cookiePlugin);
 	await fastify.register(authPlugin);
