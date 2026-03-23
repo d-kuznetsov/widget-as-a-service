@@ -19,6 +19,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@dotenvx/dotenvx": "^1.57.2",
 		"@fastify/autoload": "^6.0.0",
 		"@fastify/cookie": "^11.0.2",
 		"@fastify/env": "^5.0.3",
@@ -43,6 +44,7 @@
 		"drizzle-kit": "^0.31.8",
 		"fastify-tsconfig": "^3.0.0",
 		"ts-node": "^10.4.0",
+		"tsx": "^4.21.0",
 		"typescript": "~5.9.2"
 	}
 }
