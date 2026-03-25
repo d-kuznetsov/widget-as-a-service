@@ -1,19 +1,16 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	NewUser,
-	rolesTable,
-	tenantMembersTable,
+	tenantUserRolesTable,
 	User,
-	userRolesTable,
 	usersTable,
 } from '../../db/schema';
-import { AppError, DataBaseError, DomainError } from '../../shared/errors';
+import { DataBaseError, DomainError } from '../../shared/errors';
 import {
 	isPgErrorWithCause,
 	PostgresErrorCode,
 } from '../../shared/utils/pg-errors';
-import { Role } from '../../shared/utils/roles';
 import { UserUpdateInput } from './user.schema';
 
 export interface UserRepository {
@@ -22,7 +19,7 @@ export interface UserRepository {
 	findByEmail: (email: string) => Promise<User | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
-	updateRoles: (userId: number, roleNames: Role[]) => Promise<Role[]>;
+	// updateRoles: (userId: number, roleNames: Role[]) => Promise<Role[]>;
 }
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
@@ -36,7 +33,7 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 						.returning();
 
 					await tx
-						.insert(tenantMembersTable)
+						.insert(tenantUserRolesTable)
 						.values({ userId: user.id, tenantId, roleId });
 					return user;
 				});
@@ -111,35 +108,35 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		updateRoles: async (userId: number, roleNames: Role[]) => {
-			try {
-				return await db.transaction(async (tx) => {
-					await tx
-						.delete(userRolesTable)
-						.where(eq(userRolesTable.userId, userId));
-					if (roleNames.length === 0) return [];
-					const roles = await tx
-						.select()
-						.from(rolesTable)
-						.where(inArray(rolesTable.name, roleNames));
-					await tx
-						.insert(userRolesTable)
-						.values(roles.map((role) => ({ userId, roleId: role.id })));
-					return roles.map((r) => r.name as Role);
-				});
-			} catch (error) {
-				if (error instanceof AppError) throw error;
-				if (
-					isPgErrorWithCause(error) &&
-					error.cause?.code === PostgresErrorCode.FOREIGN_KEY_VIOLATION &&
-					error.cause?.detail?.includes('userId')
-				) {
-					throw DomainError.userNotFound({
-						message: 'User not found',
-					});
-				}
-				throw new DataBaseError({ cause: error as Error });
-			}
-		},
+		// updateRoles: async (userId: number, roleNames: Role[]) => {
+		// 	try {
+		// 		return await db.transaction(async (tx) => {
+		// 			await tx
+		// 				.delete(userRolesTable)
+		// 				.where(eq(userRolesTable.userId, userId));
+		// 			if (roleNames.length === 0) return [];
+		// 			const roles = await tx
+		// 				.select()
+		// 				.from(rolesTable)
+		// 				.where(inArray(rolesTable.name, roleNames));
+		// 			await tx
+		// 				.insert(userRolesTable)
+		// 				.values(roles.map((role) => ({ userId, roleId: role.id })));
+		// 			return roles.map((r) => r.name as Role);
+		// 		});
+		// 	} catch (error) {
+		// 		if (error instanceof AppError) throw error;
+		// 		if (
+		// 			isPgErrorWithCause(error) &&
+		// 			error.cause?.code === PostgresErrorCode.FOREIGN_KEY_VIOLATION &&
+		// 			error.cause?.detail?.includes('userId')
+		// 		) {
+		// 			throw DomainError.userNotFound({
+		// 				message: 'User not found',
+		// 			});
+		// 		}
+		// 		throw new DataBaseError({ cause: error as Error });
+		// 	}
+		// },
 	};
 }

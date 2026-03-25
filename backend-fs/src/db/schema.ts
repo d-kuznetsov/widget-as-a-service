@@ -26,6 +26,7 @@ export const usersTable = pgTable('users', {
 	locale: varchar('locale', { length: 10 }).notNull().default('de-DE'),
 	status: varchar('status', { length: 20 }).notNull().default('active'),
 	lastLoginAt: timestamp('last_login_at'),
+	isSuperAdmin: boolean('is_super_admin').notNull().default(false),
 	...timestamps,
 });
 
@@ -38,21 +39,6 @@ export const rolesTable = pgTable('roles', {
 	description: varchar('description', { length: 255 }),
 	...timestamps,
 });
-
-export const userRolesTable = pgTable(
-	'user_roles',
-	{
-		id: integer().primaryKey().generatedAlwaysAsIdentity(),
-		userId: integer()
-			.notNull()
-			.references(() => usersTable.id, { onDelete: 'cascade' }),
-		roleId: integer()
-			.notNull()
-			.references(() => rolesTable.id, { onDelete: 'cascade' }),
-		...timestamps,
-	},
-	(table) => [unique().on(table.userId, table.roleId)]
-);
 
 export const refreshTokensTable = pgTable(
 	'refresh_tokens',
@@ -111,8 +97,8 @@ export const invitesTable = pgTable(
 export type NewInvite = typeof invitesTable.$inferInsert;
 export type Invite = typeof invitesTable.$inferSelect;
 
-export const tenantMembersTable = pgTable(
-	'tenant_members',
+export const tenantUserRolesTable = pgTable(
+	'tenant_user_roles',
 	{
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
 		tenantId: integer()
@@ -129,5 +115,5 @@ export const tenantMembersTable = pgTable(
 	(table) => [unique().on(table.tenantId, table.userId, table.roleId)]
 );
 
-export type NewTenantMember = typeof tenantMembersTable.$inferInsert;
-export type TenantMember = typeof tenantMembersTable.$inferSelect;
+export type NewTenantMember = typeof tenantUserRolesTable.$inferInsert;
+export type TenantMember = typeof tenantUserRolesTable.$inferSelect;

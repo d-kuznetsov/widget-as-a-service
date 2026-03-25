@@ -1,8 +1,7 @@
 import '@dotenvx/dotenvx/config';
 import { defineConfig } from 'drizzle-kit';
 
-// @ts-expect-error - process.env is not defined in the global scope
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL as string;
 if (!databaseUrl) {
 	throw new Error('DATABASE_URL environment variable is required');
 }
