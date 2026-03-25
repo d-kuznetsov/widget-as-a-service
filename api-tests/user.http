@@ -2,18 +2,6 @@
 @contentType = application/json
 @accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlcyI6WyJ1c2VyIl0sInN1YiI6MzEsImp0aSI6IjE3NzE0NDM5NDk4MDAiLCJpYXQiOjE3NzE0NDM5NDksImV4cCI6MTc3MTQ0NzU0OX0.4CXunkL_U6wLdX4ZmkXYSKhuVQ9toNtiSbrJykW1l2w
 
-### Create user
-POST {{baseUrl}}/users
-Content-Type: {{contentType}}
-
-{
-  "email": "user@example.com",
-  "password": "P@ssw0rd",
-  "firstName": "Jane",
-  "lastName": "Doe",
-  "token": "a12075e19a645097de1cd91cfc03fca1cb4c7bd55015aef1f2c00c7f05c18df6"
-}
-
 ### Get user by id
 GET {{baseUrl}}/users/1
 

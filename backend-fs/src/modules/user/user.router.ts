@@ -1,7 +1,6 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
 import {
-	userCreateSchema,
 	userParamsSchema,
 	userResponseSchema,
 	userUpdateSchema,
@@ -17,20 +16,6 @@ export async function initUserRouter(
 	options: UserRouterOptions
 ) {
 	const { service } = options;
-
-	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/', {
-		schema: {
-			body: userCreateSchema,
-			response: {
-				201: userResponseSchema,
-			},
-		},
-		handler: async (request, reply) => {
-			const user = await service.create(request.body);
-			reply.code(201);
-			return user;
-		},
-	});
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().get('/:id', {
 		schema: {

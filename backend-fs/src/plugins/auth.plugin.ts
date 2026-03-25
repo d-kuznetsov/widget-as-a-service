@@ -20,15 +20,26 @@ export default fp(async (fastify) => {
 
 	fastify.decorate(
 		'generateAccessToken',
-		async (userId: number, scope: string[]): Promise<string> => {
-			return fastify.jwt.sign({ sub: userId, scope }, { expiresIn: '1h' });
+		async (
+			userId: number,
+			role: string,
+			isSuperAdmin = false
+		): Promise<string> => {
+			return fastify.jwt.sign(
+				{ sub: userId, role, isSuperAdmin },
+				{ expiresIn: '1h' }
+			);
 		}
 	);
 });
 
 declare module 'fastify' {
 	export interface FastifyInstance {
-		generateAccessToken: (userId: number, scope: string[]) => Promise<string>;
+		generateAccessToken: (
+			userId: number,
+			role: string,
+			isSuperAdmin?: boolean
+		) => Promise<string>;
 		authenticate: (
 			request: FastifyRequest,
 			reply: FastifyReply
@@ -40,11 +51,13 @@ declare module '@fastify/jwt' {
 	interface FastifyJWT {
 		payload: {
 			sub: number;
-			scope: string[];
+			role: string;
+			isSuperAdmin: boolean;
 		};
 		user: {
 			sub: number;
-			scope: string[];
+			role: string;
+			isSuperAdmin: boolean;
 		};
 	}
 }

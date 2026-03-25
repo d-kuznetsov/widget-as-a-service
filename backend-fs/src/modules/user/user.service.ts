@@ -1,40 +1,30 @@
 import { User } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
 import { hashPassword } from '../../shared/utils/password';
-import { InviteService } from '../invite/invite.service';
 import { UserRepository } from './user.repository';
-import { UserCreateInput, UserUpdateInput } from './user.schema';
+import { UserMembershipCreateInput, UserUpdateInput } from './user.schema';
 
 export interface UserService {
-	create: (input: UserCreateInput) => Promise<User>;
+	createWithTenantMembership: (
+		input: UserMembershipCreateInput,
+		tenantId: number,
+		roleId: number
+	) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
 	findByEmail: (email: string) => Promise<User>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
 }
 
-export function createUserService(
-	repo: UserRepository,
-	inviteService: InviteService
-): UserService {
+export function createUserService(repo: UserRepository): UserService {
 	return {
-		create: async (input: UserCreateInput) => {
-			const { password, token, ...rest } = input;
-			const invite = await inviteService.findByToken(token);
-			if (!invite) {
-				throw DomainError.inviteNotFound();
-			}
-			if (invite.expiresAt < new Date()) {
-				throw DomainError.inviteExpired();
-			}
-			if (invite.used) {
-				throw DomainError.inviteAlreadyUsed();
-			}
+		createWithTenantMembership: async (input, tenantId, roleId) => {
+			const { password, ...rest } = input;
 			const newUser = {
 				...rest,
 				passwordHash: await hashPassword(password),
 			};
-			return await repo.create(newUser, invite.tenantId, invite.roleId);
+			return repo.create(newUser, tenantId, roleId);
 		},
 		findOne: async (id: number) => {
 			const user = await repo.findOne(id);

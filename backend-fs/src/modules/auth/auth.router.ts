@@ -1,5 +1,6 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
+import { userCreateSchema } from '../user/user.schema';
 import {
 	loginResponseSchema,
 	loginSchema,
@@ -17,6 +18,16 @@ export async function initAuthRouter(
 	options: AuthRouterOptions
 ) {
 	const { service } = options;
+
+	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/register', {
+		schema: {
+			body: userCreateSchema,
+			response: { 200: loginResponseSchema },
+		},
+		handler: async (request) => {
+			return service.register(request.body);
+		},
+	});
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/login', {
 		schema: {

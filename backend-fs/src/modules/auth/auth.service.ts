@@ -3,6 +3,8 @@ import { User } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { hashToken } from '../../shared/utils/token';
+import { InviteService } from '../invite/invite.service';
+import { UserCreateInput } from '../user/user.schema';
 import { UserService } from '../user/user.service';
 import { AuthRepository } from './auth.repository';
 import { LoginResponse } from './auth.schema';
@@ -12,12 +14,18 @@ const REFRESH_TOKEN_BYTES = 32;
 
 export interface AuthServiceDeps {
 	userService: UserService;
+	inviteService: InviteService;
 	authRepo: AuthRepository;
-	generateAccessToken: (userId: number, scope: string[]) => Promise<string>;
+	generateAccessToken: (
+		userId: number,
+		role: string,
+		isSuperAdmin?: boolean
+	) => Promise<string>;
 }
 
 export interface AuthService {
 	login: (email: string, password: string) => Promise<LoginResponse>;
+	register: (input: UserCreateInput) => Promise<LoginResponse>;
 	refresh: (token: string) => Promise<LoginResponse>;
 	logout: (token: string) => Promise<void>;
 	logoutAll: (userId: number) => Promise<void>;
@@ -28,7 +36,23 @@ function generateRefreshToken(): string {
 }
 
 export function createAuthService(deps: AuthServiceDeps): AuthService {
-	const { userService, authRepo, generateAccessToken } = deps;
+	const { userService, inviteService, authRepo, generateAccessToken } = deps;
+
+	async function issueLoginResponse(user: User): Promise<LoginResponse> {
+		const accessToken = await generateAccessToken(
+			user.id,
+			'user',
+			user.isSuperAdmin
+		);
+		const refreshToken = generateRefreshToken();
+		const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
+		await authRepo.createRefreshToken({
+			userId: user.id,
+			token: hashToken(refreshToken),
+			expiresAt,
+		});
+		return { accessToken, refreshToken };
+	}
 
 	return {
 		login: async (email, password) => {
@@ -40,16 +64,27 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			}
 			const ok = await verifyPassword(password, user.passwordHash);
 			if (!ok) throw DomainError.invalidCredentials();
+			return issueLoginResponse(user);
+		},
 
-			const accessToken = await generateAccessToken(user.id, ['user']);
-			const refreshToken = generateRefreshToken();
-			const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
-			await authRepo.createRefreshToken({
-				userId: user.id,
-				token: hashToken(refreshToken),
-				expiresAt,
-			});
-			return { accessToken, refreshToken };
+		register: async (input) => {
+			const { token, password, ...profile } = input;
+			const invite = await inviteService.findByToken(token);
+			if (!invite) {
+				throw DomainError.inviteNotFound();
+			}
+			if (invite.expiresAt < new Date()) {
+				throw DomainError.inviteExpired();
+			}
+			if (invite.used) {
+				throw DomainError.inviteAlreadyUsed();
+			}
+			const user = await userService.createWithTenantMembership(
+				{ ...profile, password },
+				invite.tenantId,
+				invite.roleId
+			);
+			return issueLoginResponse(user);
 		},
 
 		refresh: async (oldToken) => {
@@ -71,9 +106,12 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 					expiresAt: new Date(Date.now() + REFRESH_TOKEN_MS),
 				}
 			);
-			const accessToken = await generateAccessToken(newTokenRecord.userId, [
+			const refreshedUser = await userService.findOne(newTokenRecord.userId);
+			const accessToken = await generateAccessToken(
+				newTokenRecord.userId,
 				'user',
-			]);
+				refreshedUser.isSuperAdmin
+			);
 			return { accessToken, refreshToken: newRefreshToken };
 		},
 

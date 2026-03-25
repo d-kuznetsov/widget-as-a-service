@@ -29,5 +29,6 @@ export const userUpdateRolesSchema = Type.Object({
 });
 
 export type UserCreateInput = Type.Static<typeof userCreateSchema>;
+export type UserMembershipCreateInput = Omit<UserCreateInput, 'token'>;
 export type UserUpdateInput = Type.Static<typeof userUpdateSchema>;
 export type UserResponse = Type.Static<typeof userResponseSchema>;
