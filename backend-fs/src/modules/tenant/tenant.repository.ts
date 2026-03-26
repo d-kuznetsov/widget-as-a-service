@@ -1,7 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Tenant, tenantsTable } from '../../db/schema';
-import { DataBaseError } from '../../shared/errors';
+import { DataBaseError, DomainError } from '../../shared/errors';
+import {
+	isPgErrorWithCause,
+	PostgresErrorCode,
+} from '../../shared/utils/pg-errors';
 import { TenantCreateInput, TenantUpdateInput } from './tenant.schema';
 
 export interface TenantRepository {
@@ -13,6 +17,16 @@ export interface TenantRepository {
 }
 
 export function createTenantRepository(db: NodePgDatabase): TenantRepository {
+	const mapTenantUniqueViolation = (error: unknown) => {
+		if (
+			isPgErrorWithCause(error) &&
+			error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION &&
+			error.cause?.detail?.includes('slug')
+		) {
+			throw DomainError.tenantSlugAlreadyExists();
+		}
+	};
+
 	return {
 		create: async (input: TenantCreateInput) => {
 			try {
@@ -22,6 +36,7 @@ export function createTenantRepository(db: NodePgDatabase): TenantRepository {
 					.returning();
 				return tenant;
 			} catch (error) {
+				mapTenantUniqueViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
@@ -53,6 +68,7 @@ export function createTenantRepository(db: NodePgDatabase): TenantRepository {
 					.returning();
 				return updatedTenant ?? null;
 			} catch (error) {
+				mapTenantUniqueViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},

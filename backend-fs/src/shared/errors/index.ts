@@ -39,6 +39,7 @@ export enum DomainErrorCode {
 	SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
 	REVOKED_TOKEN_REUSE = 'REVOKED_TOKEN_REUSE',
 	TENANT_NOT_FOUND = 'TENANT_NOT_FOUND',
+	TENANT_SLUG_ALREADY_EXISTS = 'TENANT_SLUG_ALREADY_EXISTS',
 	ROLE_NOT_FOUND = 'ROLE_NOT_FOUND',
 	INVITE_ALREADY_EXISTS = 'INVITE_ALREADY_EXISTS',
 	INVITE_NOT_FOUND = 'INVITE_NOT_FOUND',
@@ -86,6 +87,13 @@ export class DomainError extends AppError {
 		return new DomainError({
 			message: 'Tenant not found',
 			code: DomainErrorCode.TENANT_NOT_FOUND,
+			...params,
+		});
+	}
+	static tenantSlugAlreadyExists(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Tenant slug already exists',
+			code: DomainErrorCode.TENANT_SLUG_ALREADY_EXISTS,
 			...params,
 		});
 	}

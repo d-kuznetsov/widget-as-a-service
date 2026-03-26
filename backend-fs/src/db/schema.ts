@@ -67,6 +67,7 @@ export type RefreshToken = typeof refreshTokensTable.$inferSelect;
 export const tenantsTable = pgTable('tenants', {
 	id: integer().primaryKey().generatedAlwaysAsIdentity(),
 	name: varchar('name', { length: 255 }).notNull(),
+	slug: varchar('slug', { length: 100 }).notNull().unique(),
 	address: varchar('address', { length: 255 }),
 	timezone: varchar('timezone', { length: 50 }).notNull().default('UTC'),
 	...timestamps,
