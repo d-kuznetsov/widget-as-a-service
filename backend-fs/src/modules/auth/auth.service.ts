@@ -4,10 +4,9 @@ import { DomainError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { hashToken } from '../../shared/utils/token';
 import { InviteService } from '../invite/invite.service';
-import { UserCreateInput } from '../user/user.schema';
 import { UserService } from '../user/user.service';
 import { AuthRepository } from './auth.repository';
-import { LoginResponse } from './auth.schema';
+import { LoginResponse, RegisterInput } from './auth.schema';
 
 const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
 const REFRESH_TOKEN_BYTES = 32;
@@ -25,7 +24,7 @@ export interface AuthServiceDeps {
 
 export interface AuthService {
 	login: (email: string, password: string) => Promise<LoginResponse>;
-	register: (input: UserCreateInput) => Promise<LoginResponse>;
+	register: (input: RegisterInput) => Promise<LoginResponse>;
 	refresh: (token: string) => Promise<LoginResponse>;
 	logout: (token: string) => Promise<void>;
 	logoutAll: (userId: number) => Promise<void>;
@@ -79,7 +78,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			if (invite.used) {
 				throw DomainError.inviteAlreadyUsed();
 			}
-			const user = await userService.createWithTenantMembership(
+			const user = await userService.create(
 				{ ...profile, password },
 				invite.tenantId,
 				invite.roleId

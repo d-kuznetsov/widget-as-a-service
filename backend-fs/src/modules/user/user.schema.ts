@@ -8,12 +8,11 @@ export const userBaseSchema = Type.Object({
 });
 
 export const userCreateSchema = Type.Object({
-	token: Type.String({ minLength: 1, maxLength: 255 }),
 	password: Type.String({ minLength: 8, maxLength: 255 }),
 	...userBaseSchema.properties,
 });
 
-export const userUpdateSchema = Type.Partial(userCreateSchema);
+export const userUpdateSchema = Type.Partial(userBaseSchema);
 
 export const userResponseSchema = Type.Object({
 	id: Type.Number(),
@@ -29,6 +28,5 @@ export const userUpdateRolesSchema = Type.Object({
 });
 
 export type UserCreateInput = Type.Static<typeof userCreateSchema>;
-export type UserMembershipCreateInput = Omit<UserCreateInput, 'token'>;
 export type UserUpdateInput = Type.Static<typeof userUpdateSchema>;
 export type UserResponse = Type.Static<typeof userResponseSchema>;

@@ -2,11 +2,11 @@ import { User } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
 import { hashPassword } from '../../shared/utils/password';
 import { UserRepository } from './user.repository';
-import { UserMembershipCreateInput, UserUpdateInput } from './user.schema';
+import { UserCreateInput, UserUpdateInput } from './user.schema';
 
 export interface UserService {
-	createWithTenantMembership: (
-		input: UserMembershipCreateInput,
+	create: (
+		input: UserCreateInput,
 		tenantId: number,
 		roleId: number
 	) => Promise<User>;
@@ -18,7 +18,7 @@ export interface UserService {
 
 export function createUserService(repo: UserRepository): UserService {
 	return {
-		createWithTenantMembership: async (input, tenantId, roleId) => {
+		create: async (input, tenantId, roleId) => {
 			const { password, ...rest } = input;
 			const newUser = {
 				...rest,
