@@ -1,10 +1,11 @@
 import fastifyJwt from '@fastify/jwt';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
+import type { Role } from '../shared/utils/roles';
 
 export interface GenerateAccessTokenOptions {
 	userId: number;
-	role: string;
+	role: Role;
 	tenantId?: number | null;
 }
 
@@ -15,13 +16,18 @@ export default fp(async (fastify) => {
 
 	fastify.decorate(
 		'authenticate',
-		async (request: FastifyRequest, reply: FastifyReply) => {
-			try {
-				await request.jwtVerify();
-			} catch (err) {
-				reply.send(err);
+		(roles: readonly Role[]) =>
+			async (request: FastifyRequest, reply: FastifyReply) => {
+				try {
+					await request.jwtVerify();
+				} catch (err) {
+					reply.send(err);
+					return;
+				}
+				if (roles.length > 0 && !roles.includes(request.user.role)) {
+					reply.code(403).send({ message: 'Forbidden' });
+				}
 			}
-		}
 	);
 
 	fastify.decorate(
@@ -40,9 +46,8 @@ declare module 'fastify' {
 	export interface FastifyInstance {
 		generateAccessToken: (opts: GenerateAccessTokenOptions) => Promise<string>;
 		authenticate: (
-			request: FastifyRequest,
-			reply: FastifyReply
-		) => Promise<void>;
+			roles: readonly Role[]
+		) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 	}
 }
 
@@ -50,12 +55,12 @@ declare module '@fastify/jwt' {
 	interface FastifyJWT {
 		payload: {
 			sub: number;
-			role: string;
+			role: Role;
 			tenantId: number | null;
 		};
 		user: {
 			sub: number;
-			role: string;
+			role: Role;
 			tenantId: number | null;
 		};
 	}

@@ -3,7 +3,7 @@ import { User } from '../../db/schema';
 import type { GenerateAccessTokenOptions } from '../../plugins/auth.plugin';
 import { DomainError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
-import { Roles } from '../../shared/utils/roles';
+import { type Role, Roles } from '../../shared/utils/roles';
 import { hashToken } from '../../shared/utils/token';
 import { InviteService } from '../invite/invite.service';
 import { UserService } from '../user/user.service';
@@ -41,7 +41,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 
 	async function issueLoginResponse(
 		user: User,
-		role: string,
+		role: Role,
 		tenantId: number | null
 	): Promise<LoginResponse> {
 		const accessToken = await generateAccessToken({
@@ -69,7 +69,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			}
 			const ok = await verifyPassword(password, user.passwordHash);
 			if (!ok) throw DomainError.invalidCredentials();
-			let role: string;
+			let role: Role;
 			let tenantId: number | null;
 			if (user.isSuperAdmin) {
 				role = Roles.SUPER_ADMIN;
@@ -80,7 +80,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 					tenantSlug
 				);
 				if (tenantRole === null) throw DomainError.invalidCredentials();
-				role = tenantRole.roleName;
+				role = tenantRole.roleName as Role;
 				tenantId = tenantRole.tenantId;
 			}
 			return issueLoginResponse(user, role, tenantId);
@@ -107,7 +107,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			if (!roleName) {
 				throw DomainError.roleNotFound();
 			}
-			return issueLoginResponse(user, roleName, invite.tenantId);
+			return issueLoginResponse(user, roleName as Role, invite.tenantId);
 		},
 
 		refresh: async (oldToken) => {
@@ -132,7 +132,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const refreshedUser = await userService.findOne(newTokenRecord.userId);
 			const accessToken = await generateAccessToken({
 				userId: newTokenRecord.userId,
-				role: refreshedUser.isSuperAdmin ? Roles.SUPER_ADMIN : 'user',
+				role: refreshedUser.isSuperAdmin ? Roles.SUPER_ADMIN : Roles.CLIENT,
 				tenantId: null,
 			});
 			return { accessToken, refreshToken: newRefreshToken };

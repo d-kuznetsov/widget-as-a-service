@@ -55,7 +55,7 @@ export async function initAuthRouter(
 		schema: {
 			body: logoutSchema,
 		},
-		onRequest: [fastify.authenticate],
+		onRequest: [fastify.authenticate([])],
 		handler: async (request, reply) => {
 			await service.logout(request.body.refreshToken);
 			reply.code(204);
@@ -63,7 +63,7 @@ export async function initAuthRouter(
 	});
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/logout-all', {
-		onRequest: [fastify.authenticate],
+		onRequest: [fastify.authenticate([])],
 		handler: async (request, reply) => {
 			await service.logoutAll(request.user.sub);
 			reply.code(204);

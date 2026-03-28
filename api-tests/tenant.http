@@ -1,9 +1,11 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjM3LCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc0NzM5MDgzLCJleHAiOjE3NzQ3NDI2ODN9.L7z9HOJwiReIXI1rYztvi2pkn4UlCWaTVzZwXn_LW7s
 
 ### Create tenant
 POST {{baseUrl}}/tenants
 Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
 
 {
   "name": "Acme Corp",
@@ -14,6 +16,7 @@ Content-Type: {{contentType}}
 ### Create tenant (minimal)
 POST {{baseUrl}}/tenants
 Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
 
 {
   "name": "Minimal Tenant",

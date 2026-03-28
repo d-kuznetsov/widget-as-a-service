@@ -1,5 +1,6 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
+import { Roles } from '../../shared/utils/roles';
 import {
 	tenantCreateSchema,
 	tenantParamsSchema,
@@ -25,6 +26,7 @@ export async function initTenantRouter(
 				201: tenantResponseSchema,
 			},
 		},
+		onRequest: [fastify.authenticate([Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {
 			const tenant = await service.create(request.body);
 			reply.code(201);
