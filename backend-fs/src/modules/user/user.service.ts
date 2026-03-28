@@ -16,6 +16,10 @@ export interface UserService {
 		userId: number,
 		tenantSlug: string
 	) => Promise<{ tenantId: number; roleName: string } | null>;
+	getUserRoleInTenant: (
+		userId: number,
+		tenantId: number
+	) => Promise<string | null>;
 	getRoleNameById: (roleId: number) => Promise<string | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
@@ -47,6 +51,9 @@ export function createUserService(repo: UserRepository): UserService {
 		},
 		getUserTenantContext: async (userId, tenantSlug) => {
 			return repo.getUserTenantContext(userId, tenantSlug);
+		},
+		getUserRoleInTenant: async (userId, tenantId) => {
+			return repo.getUserRoleInTenant(userId, tenantId);
 		},
 		getRoleNameById: async (roleId) => {
 			return repo.getRoleNameById(roleId);

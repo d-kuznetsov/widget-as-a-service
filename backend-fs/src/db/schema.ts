@@ -40,6 +40,18 @@ export const rolesTable = pgTable('roles', {
 	...timestamps,
 });
 
+export const tenantsTable = pgTable('tenants', {
+	id: integer().primaryKey().generatedAlwaysAsIdentity(),
+	name: varchar('name', { length: 255 }).notNull(),
+	slug: varchar('slug', { length: 100 }).notNull().unique(),
+	address: varchar('address', { length: 255 }),
+	timezone: varchar('timezone', { length: 50 }).notNull().default('UTC'),
+	...timestamps,
+});
+
+export type NewTenant = typeof tenantsTable.$inferInsert;
+export type Tenant = typeof tenantsTable.$inferSelect;
+
 export const refreshTokensTable = pgTable(
 	'refresh_tokens',
 	{
@@ -47,6 +59,9 @@ export const refreshTokensTable = pgTable(
 		userId: integer()
 			.notNull()
 			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		tenantId: integer('tenant_id').references(() => tenantsTable.id, {
+			onDelete: 'cascade',
+		}),
 		token: varchar('token_hash', { length: 1024 }).notNull(),
 		expiresAt: timestamp('expires_at').notNull(),
 		revokedAt: timestamp('revoked_at'),
@@ -63,18 +78,6 @@ export const refreshTokensTable = pgTable(
 
 export type NewRefreshToken = typeof refreshTokensTable.$inferInsert;
 export type RefreshToken = typeof refreshTokensTable.$inferSelect;
-
-export const tenantsTable = pgTable('tenants', {
-	id: integer().primaryKey().generatedAlwaysAsIdentity(),
-	name: varchar('name', { length: 255 }).notNull(),
-	slug: varchar('slug', { length: 100 }).notNull().unique(),
-	address: varchar('address', { length: 255 }),
-	timezone: varchar('timezone', { length: 50 }).notNull().default('UTC'),
-	...timestamps,
-});
-
-export type NewTenant = typeof tenantsTable.$inferInsert;
-export type Tenant = typeof tenantsTable.$inferSelect;
 
 export const invitesTable = pgTable(
 	'invites',

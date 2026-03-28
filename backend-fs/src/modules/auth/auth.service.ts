@@ -53,6 +53,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 		const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
 		await authRepo.createRefreshToken({
 			userId: user.id,
+			tenantId,
 			token: hashToken(refreshToken),
 			expiresAt,
 		});
@@ -125,15 +126,36 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 				oldTokenRecord.id,
 				{
 					userId: oldTokenRecord.userId,
+					tenantId: oldTokenRecord.tenantId,
 					token: hashToken(newRefreshToken),
 					expiresAt: new Date(Date.now() + REFRESH_TOKEN_MS),
 				}
 			);
 			const refreshedUser = await userService.findOne(newTokenRecord.userId);
+			let role: Role;
+			let tenantId: number | null;
+			if (refreshedUser.isSuperAdmin) {
+				role = Roles.SUPER_ADMIN;
+				tenantId = null;
+			} else {
+				const tid = newTokenRecord.tenantId;
+				if (tid === null) {
+					throw DomainError.invalidCredentials();
+				}
+				const roleName = await userService.getUserRoleInTenant(
+					newTokenRecord.userId,
+					tid
+				);
+				if (!roleName) {
+					throw DomainError.invalidCredentials();
+				}
+				role = roleName as Role;
+				tenantId = tid;
+			}
 			const accessToken = await generateAccessToken({
 				userId: newTokenRecord.userId,
-				role: refreshedUser.isSuperAdmin ? Roles.SUPER_ADMIN : Roles.CLIENT,
-				tenantId: null,
+				role,
+				tenantId,
 			});
 			return { accessToken, refreshToken: newRefreshToken };
 		},

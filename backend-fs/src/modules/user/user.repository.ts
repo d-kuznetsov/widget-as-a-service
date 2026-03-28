@@ -23,6 +23,10 @@ export interface UserRepository {
 		userId: number,
 		tenantSlug: string
 	) => Promise<{ tenantId: number; roleName: string } | null>;
+	getUserRoleInTenant: (
+		userId: number,
+		tenantId: number
+	) => Promise<string | null>;
 	getRoleNameById: (roleId: number) => Promise<string | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
@@ -115,6 +119,25 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.limit(1);
 				if (!row) return null;
 				return { tenantId: row.tenantId, roleName: row.roleName };
+			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		getUserRoleInTenant: async (userId, tenantId) => {
+			try {
+				const [row] = await db
+					.select({ roleName: rolesTable.name })
+					.from(tenantUserRolesTable)
+					.innerJoin(rolesTable, eq(rolesTable.id, tenantUserRolesTable.roleId))
+					.where(
+						and(
+							eq(tenantUserRolesTable.userId, userId),
+							eq(tenantUserRolesTable.tenantId, tenantId)
+						)
+					)
+					.orderBy(asc(rolesTable.name))
+					.limit(1);
+				return row?.roleName ?? null;
 			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}
