@@ -2,6 +2,12 @@ import fastifyJwt from '@fastify/jwt';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
+export interface GenerateAccessTokenOptions {
+	userId: number;
+	role: string;
+	tenantId?: number | null;
+}
+
 export default fp(async (fastify) => {
 	fastify.register(fastifyJwt, {
 		secret: process.env.JWT_SECRET as string,
@@ -20,13 +26,10 @@ export default fp(async (fastify) => {
 
 	fastify.decorate(
 		'generateAccessToken',
-		async (
-			userId: number,
-			role: string,
-			isSuperAdmin = false
-		): Promise<string> => {
+		async (opts: GenerateAccessTokenOptions): Promise<string> => {
+			const { userId, role, tenantId = null } = opts;
 			return fastify.jwt.sign(
-				{ sub: userId, role, isSuperAdmin },
+				{ sub: userId, role, tenantId },
 				{ expiresIn: '1h' }
 			);
 		}
@@ -35,11 +38,7 @@ export default fp(async (fastify) => {
 
 declare module 'fastify' {
 	export interface FastifyInstance {
-		generateAccessToken: (
-			userId: number,
-			role: string,
-			isSuperAdmin?: boolean
-		) => Promise<string>;
+		generateAccessToken: (opts: GenerateAccessTokenOptions) => Promise<string>;
 		authenticate: (
 			request: FastifyRequest,
 			reply: FastifyReply
@@ -52,12 +51,12 @@ declare module '@fastify/jwt' {
 		payload: {
 			sub: number;
 			role: string;
-			isSuperAdmin: boolean;
+			tenantId: number | null;
 		};
 		user: {
 			sub: number;
 			role: string;
-			isSuperAdmin: boolean;
+			tenantId: number | null;
 		};
 	}
 }

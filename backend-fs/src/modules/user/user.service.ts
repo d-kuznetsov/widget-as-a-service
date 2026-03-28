@@ -12,10 +12,10 @@ export interface UserService {
 	) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
 	findByEmail: (email: string) => Promise<User>;
-	getRoleNameForTenantSlug: (
+	getUserTenantContext: (
 		userId: number,
 		tenantSlug: string
-	) => Promise<string | null>;
+	) => Promise<{ tenantId: number; roleName: string } | null>;
 	getRoleNameById: (roleId: number) => Promise<string | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
@@ -45,8 +45,8 @@ export function createUserService(repo: UserRepository): UserService {
 			}
 			return user;
 		},
-		getRoleNameForTenantSlug: async (userId, tenantSlug) => {
-			return repo.getRoleNameForTenantSlug(userId, tenantSlug);
+		getUserTenantContext: async (userId, tenantSlug) => {
+			return repo.getUserTenantContext(userId, tenantSlug);
 		},
 		getRoleNameById: async (roleId) => {
 			return repo.getRoleNameById(roleId);

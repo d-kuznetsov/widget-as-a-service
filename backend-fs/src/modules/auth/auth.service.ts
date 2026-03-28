@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { User } from '../../db/schema';
+import type { GenerateAccessTokenOptions } from '../../plugins/auth.plugin';
 import { DomainError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { Roles } from '../../shared/utils/roles';
@@ -16,11 +17,7 @@ export interface AuthServiceDeps {
 	userService: UserService;
 	inviteService: InviteService;
 	authRepo: AuthRepository;
-	generateAccessToken: (
-		userId: number,
-		role: string,
-		isSuperAdmin?: boolean
-	) => Promise<string>;
+	generateAccessToken: (opts: GenerateAccessTokenOptions) => Promise<string>;
 }
 
 export interface AuthService {
@@ -44,13 +41,14 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 
 	async function issueLoginResponse(
 		user: User,
-		role: string
+		role: string,
+		tenantId: number | null
 	): Promise<LoginResponse> {
-		const accessToken = await generateAccessToken(
-			user.id,
+		const accessToken = await generateAccessToken({
+			userId: user.id,
 			role,
-			user.isSuperAdmin
-		);
+			tenantId,
+		});
 		const refreshToken = generateRefreshToken();
 		const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MS);
 		await authRepo.createRefreshToken({
@@ -72,17 +70,20 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const ok = await verifyPassword(password, user.passwordHash);
 			if (!ok) throw DomainError.invalidCredentials();
 			let role: string;
+			let tenantId: number | null;
 			if (user.isSuperAdmin) {
 				role = Roles.SUPER_ADMIN;
+				tenantId = null;
 			} else {
-				const tenantRole = await userService.getRoleNameForTenantSlug(
+				const tenantRole = await userService.getUserTenantContext(
 					user.id,
 					tenantSlug
 				);
 				if (tenantRole === null) throw DomainError.invalidCredentials();
-				role = tenantRole;
+				role = tenantRole.roleName;
+				tenantId = tenantRole.tenantId;
 			}
-			return issueLoginResponse(user, role);
+			return issueLoginResponse(user, role, tenantId);
 		},
 
 		register: async (input) => {
@@ -106,7 +107,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			if (!roleName) {
 				throw DomainError.roleNotFound();
 			}
-			return issueLoginResponse(user, roleName);
+			return issueLoginResponse(user, roleName, invite.tenantId);
 		},
 
 		refresh: async (oldToken) => {
@@ -129,11 +130,11 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 				}
 			);
 			const refreshedUser = await userService.findOne(newTokenRecord.userId);
-			const accessToken = await generateAccessToken(
-				newTokenRecord.userId,
-				'user',
-				refreshedUser.isSuperAdmin
-			);
+			const accessToken = await generateAccessToken({
+				userId: newTokenRecord.userId,
+				role: refreshedUser.isSuperAdmin ? Roles.SUPER_ADMIN : 'user',
+				tenantId: null,
+			});
 			return { accessToken, refreshToken: newRefreshToken };
 		},
 

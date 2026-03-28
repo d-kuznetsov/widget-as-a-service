@@ -19,10 +19,10 @@ export interface UserRepository {
 	create: (newUser: NewUser, tenantId: number, roleId: number) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
 	findByEmail: (email: string) => Promise<User | null>;
-	getRoleNameForTenantSlug: (
+	getUserTenantContext: (
 		userId: number,
 		tenantSlug: string
-	) => Promise<string | null>;
+	) => Promise<{ tenantId: number; roleName: string } | null>;
 	getRoleNameById: (roleId: number) => Promise<string | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
@@ -92,10 +92,13 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		getRoleNameForTenantSlug: async (userId, tenantSlug) => {
+		getUserTenantContext: async (userId, tenantSlug) => {
 			try {
 				const [row] = await db
-					.select({ name: rolesTable.name })
+					.select({
+						tenantId: tenantsTable.id,
+						roleName: rolesTable.name,
+					})
 					.from(tenantUserRolesTable)
 					.innerJoin(
 						tenantsTable,
@@ -110,7 +113,8 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					)
 					.orderBy(asc(rolesTable.name))
 					.limit(1);
-				return row?.name ?? null;
+				if (!row) return null;
+				return { tenantId: row.tenantId, roleName: row.roleName };
 			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}
