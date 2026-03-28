@@ -12,6 +12,7 @@ export interface UserService {
 	) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
 	findByEmail: (email: string) => Promise<User>;
+	isMemberOfTenant: (userId: number, tenantSlug: string) => Promise<boolean>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
 }
@@ -39,6 +40,9 @@ export function createUserService(repo: UserRepository): UserService {
 				throw DomainError.userNotFound();
 			}
 			return user;
+		},
+		isMemberOfTenant: async (userId, tenantSlug) => {
+			return repo.isMemberOfTenant(userId, tenantSlug);
 		},
 		update: async (id: number, input: UserUpdateInput) => {
 			const user = await repo.update(id, input);

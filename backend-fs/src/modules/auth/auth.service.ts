@@ -23,7 +23,11 @@ export interface AuthServiceDeps {
 }
 
 export interface AuthService {
-	login: (email: string, password: string) => Promise<LoginResponse>;
+	login: (
+		email: string,
+		password: string,
+		tenantSlug: string
+	) => Promise<LoginResponse>;
 	register: (input: RegisterInput) => Promise<LoginResponse>;
 	refresh: (token: string) => Promise<LoginResponse>;
 	logout: (token: string) => Promise<void>;
@@ -54,7 +58,7 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 	}
 
 	return {
-		login: async (email, password) => {
+		login: async (email, password, tenantSlug) => {
 			let user: User;
 			try {
 				user = await userService.findByEmail(email);
@@ -63,6 +67,13 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			}
 			const ok = await verifyPassword(password, user.passwordHash);
 			if (!ok) throw DomainError.invalidCredentials();
+			if (!user.isSuperAdmin) {
+				const inTenant = await userService.isMemberOfTenant(
+					user.id,
+					tenantSlug
+				);
+				if (!inTenant) throw DomainError.invalidCredentials();
+			}
 			return issueLoginResponse(user);
 		},
 

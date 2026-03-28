@@ -20,7 +20,8 @@ Content-Type: {{contentType}}
 
 {
   "email": "admin@example.com",
-  "password": "password"
+  "password": "password",
+  "slug": "your-tenant-slug"
 }
 
 ### Refresh token

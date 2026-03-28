@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	NewUser,
+	tenantsTable,
 	tenantUserRolesTable,
 	User,
 	usersTable,
@@ -17,6 +18,7 @@ export interface UserRepository {
 	create: (newUser: NewUser, tenantId: number, roleId: number) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
 	findByEmail: (email: string) => Promise<User | null>;
+	isMemberOfTenant: (userId: number, tenantSlug: string) => Promise<boolean>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
 	// updateRoles: (userId: number, roleNames: Role[]) => Promise<Role[]>;
@@ -81,6 +83,27 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					.where(eq(usersTable.email, email))
 					.limit(1);
 				return user ?? null;
+			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		isMemberOfTenant: async (userId, tenantSlug) => {
+			try {
+				const [row] = await db
+					.select({ id: tenantUserRolesTable.id })
+					.from(tenantUserRolesTable)
+					.innerJoin(
+						tenantsTable,
+						eq(tenantsTable.id, tenantUserRolesTable.tenantId)
+					)
+					.where(
+						and(
+							eq(tenantUserRolesTable.userId, userId),
+							eq(tenantsTable.slug, tenantSlug)
+						)
+					)
+					.limit(1);
+				return row !== undefined;
 			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}
