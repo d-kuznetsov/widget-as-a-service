@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { User } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
+import { Roles } from '../../shared/utils/roles';
 import { hashToken } from '../../shared/utils/token';
 import { InviteService } from '../invite/invite.service';
 import { UserService } from '../user/user.service';
@@ -41,10 +42,13 @@ function generateRefreshToken(): string {
 export function createAuthService(deps: AuthServiceDeps): AuthService {
 	const { userService, inviteService, authRepo, generateAccessToken } = deps;
 
-	async function issueLoginResponse(user: User): Promise<LoginResponse> {
+	async function issueLoginResponse(
+		user: User,
+		role: string
+	): Promise<LoginResponse> {
 		const accessToken = await generateAccessToken(
 			user.id,
-			'user',
+			role,
 			user.isSuperAdmin
 		);
 		const refreshToken = generateRefreshToken();
@@ -67,14 +71,18 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			}
 			const ok = await verifyPassword(password, user.passwordHash);
 			if (!ok) throw DomainError.invalidCredentials();
-			if (!user.isSuperAdmin) {
-				const inTenant = await userService.isMemberOfTenant(
+			let role: string;
+			if (user.isSuperAdmin) {
+				role = Roles.SUPER_ADMIN;
+			} else {
+				const tenantRole = await userService.getRoleNameForTenantSlug(
 					user.id,
 					tenantSlug
 				);
-				if (!inTenant) throw DomainError.invalidCredentials();
+				if (tenantRole === null) throw DomainError.invalidCredentials();
+				role = tenantRole;
 			}
-			return issueLoginResponse(user);
+			return issueLoginResponse(user, role);
 		},
 
 		register: async (input) => {
@@ -94,7 +102,11 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 				invite.tenantId,
 				invite.roleId
 			);
-			return issueLoginResponse(user);
+			const roleName = await userService.getRoleNameById(invite.roleId);
+			if (!roleName) {
+				throw DomainError.roleNotFound();
+			}
+			return issueLoginResponse(user, roleName);
 		},
 
 		refresh: async (oldToken) => {

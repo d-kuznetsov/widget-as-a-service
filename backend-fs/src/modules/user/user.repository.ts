@@ -1,7 +1,8 @@
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	NewUser,
+	rolesTable,
 	tenantsTable,
 	tenantUserRolesTable,
 	User,
@@ -18,7 +19,11 @@ export interface UserRepository {
 	create: (newUser: NewUser, tenantId: number, roleId: number) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
 	findByEmail: (email: string) => Promise<User | null>;
-	isMemberOfTenant: (userId: number, tenantSlug: string) => Promise<boolean>;
+	getRoleNameForTenantSlug: (
+		userId: number,
+		tenantSlug: string
+	) => Promise<string | null>;
+	getRoleNameById: (roleId: number) => Promise<string | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User | null>;
 	delete: (id: number) => Promise<User | null>;
 	// updateRoles: (userId: number, roleNames: Role[]) => Promise<Role[]>;
@@ -87,23 +92,37 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		isMemberOfTenant: async (userId, tenantSlug) => {
+		getRoleNameForTenantSlug: async (userId, tenantSlug) => {
 			try {
 				const [row] = await db
-					.select({ id: tenantUserRolesTable.id })
+					.select({ name: rolesTable.name })
 					.from(tenantUserRolesTable)
 					.innerJoin(
 						tenantsTable,
 						eq(tenantsTable.id, tenantUserRolesTable.tenantId)
 					)
+					.innerJoin(rolesTable, eq(rolesTable.id, tenantUserRolesTable.roleId))
 					.where(
 						and(
 							eq(tenantUserRolesTable.userId, userId),
 							eq(tenantsTable.slug, tenantSlug)
 						)
 					)
+					.orderBy(asc(rolesTable.name))
 					.limit(1);
-				return row !== undefined;
+				return row?.name ?? null;
+			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		getRoleNameById: async (roleId) => {
+			try {
+				const [row] = await db
+					.select({ name: rolesTable.name })
+					.from(rolesTable)
+					.where(eq(rolesTable.id, roleId))
+					.limit(1);
+				return row?.name ?? null;
 			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}

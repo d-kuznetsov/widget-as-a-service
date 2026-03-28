@@ -12,7 +12,11 @@ export interface UserService {
 	) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
 	findByEmail: (email: string) => Promise<User>;
-	isMemberOfTenant: (userId: number, tenantSlug: string) => Promise<boolean>;
+	getRoleNameForTenantSlug: (
+		userId: number,
+		tenantSlug: string
+	) => Promise<string | null>;
+	getRoleNameById: (roleId: number) => Promise<string | null>;
 	update: (id: number, input: UserUpdateInput) => Promise<User>;
 	delete: (id: number) => Promise<User>;
 }
@@ -41,8 +45,11 @@ export function createUserService(repo: UserRepository): UserService {
 			}
 			return user;
 		},
-		isMemberOfTenant: async (userId, tenantSlug) => {
-			return repo.isMemberOfTenant(userId, tenantSlug);
+		getRoleNameForTenantSlug: async (userId, tenantSlug) => {
+			return repo.getRoleNameForTenantSlug(userId, tenantSlug);
+		},
+		getRoleNameById: async (roleId) => {
+			return repo.getRoleNameById(roleId);
 		},
 		update: async (id: number, input: UserUpdateInput) => {
 			const user = await repo.update(id, input);
