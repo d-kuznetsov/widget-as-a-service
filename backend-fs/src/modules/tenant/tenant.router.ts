@@ -1,5 +1,6 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
+import { Type } from 'typebox';
 import { Roles } from '../../shared/utils/roles';
 import {
 	tenantCreateSchema,
@@ -51,9 +52,18 @@ export async function initTenantRouter(
 			body: tenantUpdateSchema,
 			response: {
 				200: tenantResponseSchema,
+				403: Type.Object({ message: Type.String() }),
 			},
 		},
-		handler: async (request) => {
+		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
+		handler: async (request, reply) => {
+			if (
+				request.user.role === Roles.TENANT_ADMIN &&
+				request.user.tenantId !== request.params.id
+			) {
+				reply.code(403).send({ message: 'Forbidden' });
+				return;
+			}
 			const tenant = await service.update(request.params.id, request.body);
 			return tenant;
 		},
@@ -62,6 +72,7 @@ export async function initTenantRouter(
 		schema: {
 			params: tenantParamsSchema,
 		},
+		onRequest: [fastify.authenticate([Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {
 			await service.delete(request.params.id);
 			reply.code(204);
