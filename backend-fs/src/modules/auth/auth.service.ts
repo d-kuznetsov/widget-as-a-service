@@ -93,6 +93,9 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			if (!invite) {
 				throw DomainError.inviteNotFound();
 			}
+			if (invite.email !== profile.email) {
+				throw DomainError.invalidCredentials();
+			}
 			if (invite.expiresAt < new Date()) {
 				throw DomainError.inviteExpired();
 			}
