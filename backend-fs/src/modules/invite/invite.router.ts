@@ -32,7 +32,10 @@ export async function initInviteRouter(
 				throw DomainError.badRequest({
 					message: 'tenantId is required in request body',
 				});
-			} else if (request.body.tenantId) {
+			} else if (
+				request.user.role !== Roles.SUPER_ADMIN &&
+				request.body.tenantId
+			) {
 				throw DomainError.badRequest({
 					message: 'tenantId is not allowed in request body',
 				});
