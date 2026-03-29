@@ -32,6 +32,7 @@ export class DataBaseError extends AppError {
 }
 
 export enum DomainErrorCode {
+	BAD_REQUEST = 'BAD_REQUEST',
 	USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
 	USER_NOT_FOUND = 'USER_NOT_FOUND',
 	INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
@@ -48,6 +49,13 @@ export enum DomainErrorCode {
 }
 
 export class DomainError extends AppError {
+	static badRequest(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Bad request',
+			code: DomainErrorCode.BAD_REQUEST,
+			...params,
+		});
+	}
 	static userAlreadyExists(params: Partial<AppErrorParams> = {}) {
 		return new DomainError({
 			message: 'User already exists',

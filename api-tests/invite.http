@@ -1,13 +1,26 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
+@superAdminToken = replace-with-super-admin-jwt
+@tenantAdminToken = replace-with-tenant-admin-jwt
 
-### Create invite
+### Create invite (super admin — tenantId required in body)
 POST {{baseUrl}}/invites
 Content-Type: {{contentType}}
+Authorization: Bearer {{superAdminToken}}
 
 {
   "email": "john.doe@example.com",
   "tenantId": 2,
+  "roleId": 1
+}
+
+### Create invite (tenant admin — tenant always from JWT; body tenantId ignored)
+POST {{baseUrl}}/invites
+Content-Type: {{contentType}}
+Authorization: Bearer {{tenantAdminToken}}
+
+{
+  "email": "jane.doe@example.com",
   "roleId": 1
 }
 

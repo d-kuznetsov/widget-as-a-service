@@ -11,14 +11,14 @@ function generateInviteToken(): string {
 	return randomBytes(INVITE_TOKEN_BYTES).toString('hex');
 }
 export interface InviteService {
-	create: (input: InviteCreateInput) => Promise<Invite>;
+	create: (input: Required<InviteCreateInput>) => Promise<Invite>;
 	findByToken: (token: string) => Promise<Invite | null>;
 	delete: (id: number) => Promise<Invite>;
 }
 
 export function createInviteService(repo: InviteRepository): InviteService {
 	return {
-		create: async (input: InviteCreateInput) => {
+		create: async (input: Required<InviteCreateInput>) => {
 			return repo.create({
 				...input,
 				token: generateInviteToken(),

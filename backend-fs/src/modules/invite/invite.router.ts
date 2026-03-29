@@ -1,5 +1,7 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
+import { DomainError } from '../../shared/errors';
+import { Roles } from '../../shared/utils/roles';
 import {
 	inviteCreateSchema,
 	inviteParamsSchema,
@@ -24,8 +26,21 @@ export async function initInviteRouter(
 				201: inviteResponseSchema,
 			},
 		},
+		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {
-			const invite = await service.create(request.body);
+			if (request.user.role === Roles.SUPER_ADMIN && !request.body.tenantId) {
+				throw DomainError.badRequest({
+					message: 'tenantId is required in request body',
+				});
+			} else if (request.body.tenantId) {
+				throw DomainError.badRequest({
+					message: 'tenantId is not allowed in request body',
+				});
+			}
+			const invite = await service.create({
+				...request.body,
+				tenantId: (request.user.tenantId ?? request.body.tenantId) as number,
+			});
 			reply.code(201);
 			return invite;
 		},

@@ -12,6 +12,7 @@ const mapErrorToStatusCode = (error: AppError) => {
 		case DomainErrorCode.INVALID_CREDENTIALS:
 		case DomainErrorCode.AUTHENTICATION_ERROR:
 			return 401;
+		case DomainErrorCode.BAD_REQUEST:
 		case DomainErrorCode.INVITE_NOT_FOUND:
 		case DomainErrorCode.INVITE_EXPIRED:
 		case DomainErrorCode.INVITE_ALREADY_USED:
