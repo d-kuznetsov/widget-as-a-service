@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Invite, invitesTable, NewInvite } from '../../db/schema';
 import { DataBaseError, DomainError } from '../../shared/errors';
@@ -11,7 +11,7 @@ export interface InviteRepository {
 	create: (invite: NewInvite) => Promise<Invite>;
 	findByToken: (token: string) => Promise<Invite | null>;
 	// update: (id: number, invite: InviteUpdateInput) => Promise<Invite | null>;
-	delete: (id: number) => Promise<Invite | null>;
+	delete: (id: number, tenantScope?: number) => Promise<Invite | null>;
 }
 
 export function createInviteRepository(db: NodePgDatabase): InviteRepository {
@@ -61,11 +61,18 @@ export function createInviteRepository(db: NodePgDatabase): InviteRepository {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		delete: async (id: number) => {
+		delete: async (id: number, tenantScope?: number) => {
 			try {
+				const whereClause =
+					tenantScope !== undefined
+						? and(
+								eq(invitesTable.id, id),
+								eq(invitesTable.tenantId, tenantScope)
+							)
+						: eq(invitesTable.id, id);
 				const [invite] = await db
 					.delete(invitesTable)
-					.where(eq(invitesTable.id, id))
+					.where(whereClause)
 					.returning();
 				return invite ?? null;
 			} catch (error) {
