@@ -10,15 +10,18 @@ const INVITE_EXPIRES_HOURS = 24;
 function generateInviteToken(): string {
 	return randomBytes(INVITE_TOKEN_BYTES).toString('hex');
 }
+
+type InviteCreateParams = InviteCreateInput & { tenantId: number };
+
 export interface InviteService {
-	create: (input: InviteCreateInput & { tenantId: number }) => Promise<Invite>;
+	create: (input: InviteCreateParams) => Promise<Invite>;
 	findByToken: (token: string) => Promise<Invite | null>;
 	delete: (id: number) => Promise<Invite>;
 }
 
 export function createInviteService(repo: InviteRepository): InviteService {
 	return {
-		create: async (input: InviteCreateInput & { tenantId: number }) => {
+		create: async (input: InviteCreateParams) => {
 			return repo.create({
 				...input,
 				token: generateInviteToken(),
