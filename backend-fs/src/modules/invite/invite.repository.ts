@@ -10,7 +10,6 @@ import {
 export interface InviteRepository {
 	create: (invite: NewInvite) => Promise<Invite>;
 	findByToken: (token: string) => Promise<Invite | null>;
-	// update: (id: number, invite: InviteUpdateInput) => Promise<Invite | null>;
 	delete: (id: number, tenantScope?: number) => Promise<Invite | null>;
 }
 

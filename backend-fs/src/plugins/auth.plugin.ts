@@ -1,7 +1,7 @@
 import fastifyJwt from '@fastify/jwt';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
-import type { Role } from '../shared/utils/roles';
+import { type Role, Roles } from '../shared/utils/roles';
 
 export interface GenerateAccessTokenOptions {
 	userId: number;
@@ -26,6 +26,14 @@ export default fp(async (fastify) => {
 				}
 				if (roles.length > 0 && !roles.includes(request.user.role)) {
 					reply.code(403).send({ message: 'Forbidden' });
+				}
+				if (
+					request.user.role !== Roles.SUPER_ADMIN &&
+					request.user.tenantId !==
+						Number((request.params as { tenantId: string }).tenantId)
+				) {
+					reply.code(403).send({ message: 'Forbidden' });
+					return;
 				}
 			}
 	);

@@ -17,14 +17,14 @@ function generateInviteToken(): string {
 	return randomBytes(INVITE_TOKEN_BYTES).toString('hex');
 }
 export interface InviteService {
-	create: (input: Required<InviteCreateInput>) => Promise<Invite>;
+	create: (input: InviteCreateInput & { tenantId: number }) => Promise<Invite>;
 	findByToken: (token: string) => Promise<Invite | null>;
 	delete: (id: number, actor: InviteDeleteActor) => Promise<Invite>;
 }
 
 export function createInviteService(repo: InviteRepository): InviteService {
 	return {
-		create: async (input: Required<InviteCreateInput>) => {
+		create: async (input: InviteCreateInput & { tenantId: number }) => {
 			return repo.create({
 				...input,
 				token: generateInviteToken(),

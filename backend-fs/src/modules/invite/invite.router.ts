@@ -1,10 +1,11 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
-import { DomainError } from '../../shared/errors';
+import { Type } from 'typebox';
 import { Roles } from '../../shared/utils/roles';
 import {
+	inviteCreateParamsSchema,
 	inviteCreateSchema,
-	inviteParamsSchema,
+	inviteDeleteParamsSchema,
 	inviteResponseSchema,
 } from './invite.schema';
 import { InviteService } from './invite.service';
@@ -21,28 +22,19 @@ export async function initInviteRouter(
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/', {
 		schema: {
+			params: inviteCreateParamsSchema,
 			body: inviteCreateSchema,
 			response: {
 				201: inviteResponseSchema,
+				403: Type.Object({ message: Type.String() }),
 			},
 		},
 		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {
-			if (request.user.role === Roles.SUPER_ADMIN && !request.body.tenantId) {
-				throw DomainError.badRequest({
-					message: 'tenantId is required in request body',
-				});
-			} else if (
-				request.user.role !== Roles.SUPER_ADMIN &&
-				request.body.tenantId
-			) {
-				throw DomainError.badRequest({
-					message: 'tenantId is not allowed in request body',
-				});
-			}
 			const invite = await service.create({
-				...request.body,
-				tenantId: (request.user.tenantId ?? request.body.tenantId) as number,
+				email: request.body.email,
+				roleId: request.body.roleId,
+				tenantId: request.params.tenantId,
 			});
 			reply.code(201);
 			return invite;
@@ -51,7 +43,11 @@ export async function initInviteRouter(
 
 	fastify.withTypeProvider<TypeBoxTypeProvider>().delete('/:id', {
 		schema: {
-			params: inviteParamsSchema,
+			params: inviteDeleteParamsSchema,
+			response: {
+				204: Type.Null(),
+				403: Type.Object({ message: Type.String() }),
+			},
 		},
 		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {

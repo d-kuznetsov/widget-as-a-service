@@ -1,28 +1,28 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
-@superAdminToken = replace-with-super-admin-jwt
-@tenantAdminToken = replace-with-tenant-admin-jwt
 
-### Create invite (super admin — tenantId required in body)
-POST {{baseUrl}}/invites
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQyLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOjksImlhdCI6MTc3NDkwMzA3NCwiZXhwIjoxNzc0OTA2Njc0fQ.lYUanh0VG-lsyJGJosSFdcEtxAimC1kJeYlNoGEXbz4
+
+### Create invite (super admin — tenant in path)
+POST {{baseUrl}}/tenants/9/invites
 Content-Type: {{contentType}}
-Authorization: Bearer {{superAdminToken}}
+Authorization: Bearer {{accessToken}}
 
 {
-  "email": "john.doe@example.com",
-  "tenantId": 2,
-  "roleId": 1
+  "email": "michael.scott@example.com",
+  "roleId": 50
 }
 
-### Create invite (tenant admin — tenant always from JWT; body tenantId ignored)
-POST {{baseUrl}}/invites
+### Create invite (tenant admin — path must match JWT tenantId)
+POST {{baseUrl}}/tenants/9/invites
 Content-Type: {{contentType}}
-Authorization: Bearer {{tenantAdminToken}}
+Authorization: Bearer {{accessToken}}
 
 {
-  "email": "jane.doe@example.com",
-  "roleId": 1
+  "email": "jane.scott@example.com",
+  "roleId": 50
 }
 
-### Delete invite
-DELETE {{baseUrl}}/invites/46
+### Delete invite (tenant admin)
+DELETE {{baseUrl}}/tenants/8/invites/53
+Authorization: Bearer {{accessToken}}

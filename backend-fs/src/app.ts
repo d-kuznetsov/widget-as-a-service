@@ -56,7 +56,7 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 		service: tenantService,
 	});
 	await fastify.register(initInviteRouter, {
-		prefix: '/invites',
+		prefix: '/tenants/:tenantId/invites',
 		service: inviteService,
 	});
 };

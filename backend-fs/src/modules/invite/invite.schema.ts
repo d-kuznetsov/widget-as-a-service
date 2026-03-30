@@ -1,13 +1,8 @@
 import { Type } from 'typebox';
 
-export const inviteBaseSchema = Type.Object({
-	email: Type.String({ format: 'email', maxLength: 255 }),
-	tenantId: Type.Optional(Type.Number()),
-	roleId: Type.Number(),
-});
-
 export const inviteCreateSchema = Type.Object({
-	...inviteBaseSchema.properties,
+	email: Type.String({ format: 'email', maxLength: 255 }),
+	roleId: Type.Number(),
 });
 
 export const inviteResponseSchema = Type.Object({
@@ -15,11 +10,13 @@ export const inviteResponseSchema = Type.Object({
 	token: Type.String(),
 });
 
-export const inviteParamsSchema = Type.Object({
+export const inviteCreateParamsSchema = Type.Object({
+	tenantId: Type.Number(),
+});
+
+export const inviteDeleteParamsSchema = Type.Object({
+	tenantId: Type.Number(),
 	id: Type.Number(),
 });
 
-export const inviteUpdateSchema = Type.Partial(inviteBaseSchema);
-
 export type InviteCreateInput = Type.Static<typeof inviteCreateSchema>;
-export type InviteUpdateInput = Type.Static<typeof inviteUpdateSchema>;
