@@ -35,9 +35,7 @@ export async function initAuthRouter(
 			response: { 200: loginResponseSchema },
 		},
 		handler: async (request) => {
-			const { email, password, slug } = request.body;
-			const tokens = await service.login(email, password, slug);
-			return tokens;
+			return service.login(request.body);
 		},
 	});
 

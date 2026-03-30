@@ -8,7 +8,7 @@ import { hashToken } from '../../shared/utils/token';
 import { InviteService } from '../invite/invite.service';
 import { UserService } from '../user/user.service';
 import { AuthRepository } from './auth.repository';
-import { LoginResponse, RegisterInput } from './auth.schema';
+import { LoginInput, LoginResponse, RegisterInput } from './auth.schema';
 
 const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
 const REFRESH_TOKEN_BYTES = 32;
@@ -21,11 +21,7 @@ export interface AuthServiceDeps {
 }
 
 export interface AuthService {
-	login: (
-		email: string,
-		password: string,
-		tenantSlug: string
-	) => Promise<LoginResponse>;
+	login: (input: LoginInput) => Promise<LoginResponse>;
 	register: (input: RegisterInput) => Promise<LoginResponse>;
 	refresh: (token: string) => Promise<LoginResponse>;
 	logout: (token: string) => Promise<void>;
@@ -61,7 +57,8 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 	}
 
 	return {
-		login: async (email, password, tenantSlug) => {
+		login: async (input) => {
+			const { email, password, slug } = input;
 			let user: User;
 			try {
 				user = await userService.findByEmail(email);
@@ -76,13 +73,13 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 				role = Roles.SUPER_ADMIN;
 				tenantId = null;
 			} else {
-				const tenantRole = await userService.getUserTenantContext(
+				const userTenantCtx = await userService.getUserTenantContext(
 					user.id,
-					tenantSlug
+					slug
 				);
-				if (tenantRole === null) throw DomainError.invalidCredentials();
-				role = tenantRole.roleName as Role;
-				tenantId = tenantRole.tenantId;
+				if (userTenantCtx === null) throw DomainError.invalidCredentials();
+				role = userTenantCtx.roleName as Role;
+				tenantId = userTenantCtx.tenantId;
 			}
 			return issueLoginResponse(user, role, tenantId);
 		},
@@ -99,61 +96,58 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			if (invite.expiresAt < new Date()) {
 				throw DomainError.inviteExpired();
 			}
-			if (invite.used) {
-				throw DomainError.inviteAlreadyUsed();
+			const roleName = await userService.getRoleNameById(invite.roleId);
+			if (!roleName) {
+				throw DomainError.roleNotFound();
 			}
 			const user = await userService.create(
 				{ ...profile, password },
 				invite.tenantId,
 				invite.roleId
 			);
-			const roleName = await userService.getRoleNameById(invite.roleId);
-			if (!roleName) {
-				throw DomainError.roleNotFound();
-			}
+
 			return issueLoginResponse(user, roleName as Role, invite.tenantId);
 		},
 
-		refresh: async (oldToken) => {
-			const oldTokenHash = hashToken(oldToken);
-			const oldTokenRecord =
-				await authRepo.findByRefreshTokenHash(oldTokenHash);
-			if (!oldTokenRecord || oldTokenRecord.expiresAt < new Date()) {
+		refresh: async (currentToken) => {
+			const currentTokenHash = hashToken(currentToken);
+			const currentTokenRecord =
+				await authRepo.findByRefreshTokenHash(currentTokenHash);
+			if (!currentTokenRecord || currentTokenRecord.expiresAt < new Date()) {
 				throw DomainError.invalidCredentials();
 			}
-			if (oldTokenRecord.revokedAt) {
+			if (currentTokenRecord.revokedAt) {
 				throw DomainError.revokedTokenReuse();
 			}
 			const newRefreshToken = generateRefreshToken();
 			const newTokenRecord = await authRepo.rotateRefreshToken(
-				oldTokenRecord.id,
+				currentTokenRecord.id,
 				{
-					userId: oldTokenRecord.userId,
-					tenantId: oldTokenRecord.tenantId,
+					userId: currentTokenRecord.userId,
+					tenantId: currentTokenRecord.tenantId,
 					token: hashToken(newRefreshToken),
 					expiresAt: new Date(Date.now() + REFRESH_TOKEN_MS),
 				}
 			);
-			const refreshedUser = await userService.findOne(newTokenRecord.userId);
+			const user = await userService.findOne(newTokenRecord.userId);
 			let role: Role;
 			let tenantId: number | null;
-			if (refreshedUser.isSuperAdmin) {
+			if (user.isSuperAdmin) {
 				role = Roles.SUPER_ADMIN;
 				tenantId = null;
 			} else {
-				const tid = newTokenRecord.tenantId;
-				if (tid === null) {
+				if (newTokenRecord.tenantId === null) {
 					throw DomainError.invalidCredentials();
 				}
 				const roleName = await userService.getUserRoleInTenant(
 					newTokenRecord.userId,
-					tid
+					newTokenRecord.tenantId
 				);
 				if (!roleName) {
 					throw DomainError.invalidCredentials();
 				}
 				role = roleName as Role;
-				tenantId = tid;
+				tenantId = newTokenRecord.tenantId;
 			}
 			const accessToken = await generateAccessToken({
 				userId: newTokenRecord.userId,

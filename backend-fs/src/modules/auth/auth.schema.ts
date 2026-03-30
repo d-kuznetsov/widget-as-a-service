@@ -1,5 +1,13 @@
 import { Type } from 'typebox';
 
+export const registerSchema = Type.Object({
+	token: Type.String({ minLength: 1, maxLength: 255 }),
+	email: Type.String({ format: 'email', maxLength: 255 }),
+	password: Type.String({ minLength: 8, maxLength: 255 }),
+	firstName: Type.String({ minLength: 1, maxLength: 255 }),
+	lastName: Type.String({ minLength: 1, maxLength: 255 }),
+});
+
 export const loginSchema = Type.Object({
 	email: Type.String({ format: 'email', maxLength: 255 }),
 	password: Type.String({ minLength: 8, maxLength: 255 }),
@@ -8,14 +16,6 @@ export const loginSchema = Type.Object({
 		maxLength: 100,
 		pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$',
 	}),
-});
-
-export const registerSchema = Type.Object({
-	token: Type.String({ minLength: 1, maxLength: 255 }),
-	email: Type.String({ format: 'email', maxLength: 255 }),
-	password: Type.String({ minLength: 8, maxLength: 255 }),
-	firstName: Type.String({ minLength: 1, maxLength: 255 }),
-	lastName: Type.String({ minLength: 1, maxLength: 255 }),
 });
 
 export const loginResponseSchema = Type.Object({
