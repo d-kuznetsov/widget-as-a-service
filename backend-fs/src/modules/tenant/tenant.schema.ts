@@ -29,4 +29,3 @@ export const tenantParamsSchema = Type.Object({
 
 export type TenantCreateInput = Type.Static<typeof tenantCreateSchema>;
 export type TenantUpdateInput = Type.Static<typeof tenantUpdateSchema>;
-export type TenantResponse = Type.Static<typeof tenantResponseSchema>;

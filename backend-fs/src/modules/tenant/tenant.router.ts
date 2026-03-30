@@ -1,6 +1,5 @@
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { FastifyInstance } from 'fastify';
-import { Type } from 'typebox';
 import { Roles } from '../../shared/utils/roles';
 import {
 	tenantCreateSchema,
@@ -41,10 +40,15 @@ export async function initTenantRouter(
 				200: tenantResponseSchema,
 			},
 		},
-		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
-		handler: async (request) => {
-			const tenant = await service.findOne(request.params.tenantId);
-			return tenant;
+		onRequest: [
+			fastify.authenticate([
+				Roles.TENANT_ADMIN,
+				Roles.SUPER_ADMIN,
+				Roles.SPECIALIST,
+			]),
+		],
+		handler: (request) => {
+			return service.findOne(request.params.tenantId);
 		},
 	});
 	fastify.withTypeProvider<TypeBoxTypeProvider>().put('/:tenantId', {
@@ -53,7 +57,6 @@ export async function initTenantRouter(
 			body: tenantUpdateSchema,
 			response: {
 				200: tenantResponseSchema,
-				403: Type.Object({ message: Type.String() }),
 			},
 		},
 		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
@@ -73,7 +76,6 @@ export async function initTenantRouter(
 		handler: async (request, reply) => {
 			await service.delete(request.params.tenantId);
 			reply.code(204);
-			return;
 		},
 	});
 }
