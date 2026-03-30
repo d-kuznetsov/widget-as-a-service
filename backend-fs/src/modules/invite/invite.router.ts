@@ -51,10 +51,7 @@ export async function initInviteRouter(
 		},
 		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {
-			await service.delete(request.params.id, {
-				role: request.user.role,
-				tenantId: request.user.tenantId,
-			});
+			await service.delete(request.params.id);
 			reply.code(204);
 		},
 	});
