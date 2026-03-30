@@ -24,7 +24,7 @@ export const tenantResponseSchema = Type.Object({
 });
 
 export const tenantParamsSchema = Type.Object({
-	id: Type.Number(),
+	tenantId: Type.Number(),
 });
 
 export type TenantCreateInput = Type.Static<typeof tenantCreateSchema>;

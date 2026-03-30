@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjM3LCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc0NzM5MDgzLCJleHAiOjE3NzQ3NDI2ODN9.L7z9HOJwiReIXI1rYztvi2pkn4UlCWaTVzZwXn_LW7s
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQyLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOjksImlhdCI6MTc3NDkwMzA3NCwiZXhwIjoxNzc0OTA2Njc0fQ.lYUanh0VG-lsyJGJosSFdcEtxAimC1kJeYlNoGEXbz4
 
 ### Create tenant
 POST {{baseUrl}}/tenants
@@ -8,9 +8,9 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-  "name": "Acme Corp",
-  "slug": "acme-corp",
-  "address": "123 Main St"
+  "name": "BioPulse Labs",
+  "slug": "biopulse",
+  "address": "123 Main St, New York, NY 10001, USA"
 }
 
 ### Create tenant (minimal)
@@ -24,11 +24,14 @@ Authorization: Bearer {{accessToken}}
 }
 
 ### Get tenant by id
-GET {{baseUrl}}/tenants/1
+GET {{baseUrl}}/tenants/9
+Authorization: Bearer {{accessToken}}
+
 
 ### Update tenant
 PUT {{baseUrl}}/tenants/1
 Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
 
 {
   "name": "Acme Corp Updated",
@@ -39,6 +42,7 @@ Content-Type: {{contentType}}
 ### Update tenant (partial)
 PUT {{baseUrl}}/tenants/1
 Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
 
 {
   "address": null

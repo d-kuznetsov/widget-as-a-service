@@ -26,6 +26,7 @@ export default fp(async (fastify) => {
 				}
 				if (roles.length > 0 && !roles.includes(request.user.role)) {
 					reply.code(403).send({ message: 'Forbidden' });
+					return;
 				}
 				if (
 					request.user.role !== Roles.SUPER_ADMIN &&

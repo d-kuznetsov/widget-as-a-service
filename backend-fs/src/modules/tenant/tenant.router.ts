@@ -34,19 +34,20 @@ export async function initTenantRouter(
 			return tenant;
 		},
 	});
-	fastify.withTypeProvider<TypeBoxTypeProvider>().get('/:id', {
+	fastify.withTypeProvider<TypeBoxTypeProvider>().get('/:tenantId', {
 		schema: {
 			params: tenantParamsSchema,
 			response: {
 				200: tenantResponseSchema,
 			},
 		},
+		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request) => {
-			const tenant = await service.findOne(request.params.id);
+			const tenant = await service.findOne(request.params.tenantId);
 			return tenant;
 		},
 	});
-	fastify.withTypeProvider<TypeBoxTypeProvider>().put('/:id', {
+	fastify.withTypeProvider<TypeBoxTypeProvider>().put('/:tenantId', {
 		schema: {
 			params: tenantParamsSchema,
 			body: tenantUpdateSchema,
@@ -56,25 +57,21 @@ export async function initTenantRouter(
 			},
 		},
 		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
-		handler: async (request, reply) => {
-			if (
-				request.user.role === Roles.TENANT_ADMIN &&
-				request.user.tenantId !== request.params.id
-			) {
-				reply.code(403).send({ message: 'Forbidden' });
-				return;
-			}
-			const tenant = await service.update(request.params.id, request.body);
+		handler: async (request) => {
+			const tenant = await service.update(
+				request.params.tenantId,
+				request.body
+			);
 			return tenant;
 		},
 	});
-	fastify.withTypeProvider<TypeBoxTypeProvider>().delete('/:id', {
+	fastify.withTypeProvider<TypeBoxTypeProvider>().delete('/:tenantId', {
 		schema: {
 			params: tenantParamsSchema,
 		},
 		onRequest: [fastify.authenticate([Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {
-			await service.delete(request.params.id);
+			await service.delete(request.params.tenantId);
 			reply.code(204);
 			return;
 		},
