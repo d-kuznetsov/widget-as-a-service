@@ -25,10 +25,16 @@ export function createSpecialistRepository(
 ): SpecialistRepository {
 	const mapSpecialistUniqueViolation = (error: unknown) => {
 		if (
-			isPgErrorWithCause(error) &&
-			error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION &&
-			error.cause?.detail?.includes('name')
+			!isPgErrorWithCause(error) ||
+			error.cause?.code !== PostgresErrorCode.UNIQUE_VIOLATION
 		) {
+			return;
+		}
+		const detail = error.cause.detail ?? '';
+		if (detail.includes('tenant_id, user_id')) {
+			throw DomainError.specialistUserAlreadyLinked();
+		}
+		if (detail.includes('name')) {
 			throw DomainError.specialistNameAlreadyExists();
 		}
 	};

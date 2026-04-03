@@ -47,6 +47,7 @@ export enum DomainErrorCode {
 	INVITE_EXPIRED = 'INVITE_EXPIRED',
 	INVITE_ALREADY_USED = 'INVITE_ALREADY_USED',
 	SPECIALIST_NAME_ALREADY_EXISTS = 'SPECIALIST_NAME_ALREADY_EXISTS',
+	SPECIALIST_USER_ALREADY_LINKED = 'SPECIALIST_USER_ALREADY_LINKED',
 	SPECIALIST_NOT_FOUND = 'SPECIALIST_NOT_FOUND',
 }
 
@@ -146,6 +147,13 @@ export class DomainError extends AppError {
 		return new DomainError({
 			message: 'Specialist name already exists',
 			code: DomainErrorCode.SPECIALIST_NAME_ALREADY_EXISTS,
+			...params,
+		});
+	}
+	static specialistUserAlreadyLinked(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'User is already linked to a specialist in this tenant',
+			code: DomainErrorCode.SPECIALIST_USER_ALREADY_LINKED,
 			...params,
 		});
 	}

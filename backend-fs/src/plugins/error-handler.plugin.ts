@@ -10,6 +10,7 @@ const mapErrorToStatusCode = (error: AppError) => {
 		case DomainErrorCode.USER_ALREADY_EXISTS:
 		case DomainErrorCode.TENANT_SLUG_ALREADY_EXISTS:
 		case DomainErrorCode.SPECIALIST_NAME_ALREADY_EXISTS:
+		case DomainErrorCode.SPECIALIST_USER_ALREADY_LINKED:
 			return 409;
 		case DomainErrorCode.INVALID_CREDENTIALS:
 		case DomainErrorCode.AUTHENTICATION_ERROR:
