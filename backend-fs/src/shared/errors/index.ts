@@ -49,6 +49,7 @@ export enum DomainErrorCode {
 	SPECIALIST_NAME_ALREADY_EXISTS = 'SPECIALIST_NAME_ALREADY_EXISTS',
 	SPECIALIST_USER_ALREADY_LINKED = 'SPECIALIST_USER_ALREADY_LINKED',
 	SPECIALIST_NOT_FOUND = 'SPECIALIST_NOT_FOUND',
+	SERVICE_NOT_FOUND = 'SERVICE_NOT_FOUND',
 }
 
 export class DomainError extends AppError {
@@ -161,6 +162,13 @@ export class DomainError extends AppError {
 		return new DomainError({
 			message: 'Specialist not found',
 			code: DomainErrorCode.SPECIALIST_NOT_FOUND,
+			...params,
+		});
+	}
+	static serviceNotFound(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Service not found',
+			code: DomainErrorCode.SERVICE_NOT_FOUND,
 			...params,
 		});
 	}
