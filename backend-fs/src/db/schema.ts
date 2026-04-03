@@ -142,7 +142,7 @@ export const tenantUserRolesTable = pgTable(
 			.notNull()
 			.references(() => rolesTable.id, { onDelete: 'cascade' }),
 	},
-	(table) => [unique().on(table.tenantId, table.userId, table.roleId)]
+	(table) => [unique().on(table.tenantId, table.userId)]
 );
 
 export type NewTenantMember = typeof tenantUserRolesTable.$inferInsert;
