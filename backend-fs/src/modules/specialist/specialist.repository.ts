@@ -33,6 +33,23 @@ export function createSpecialistRepository(
 		}
 	};
 
+	const mapSpecialistForeignKeyViolation = (error: unknown) => {
+		if (
+			!isPgErrorWithCause(error) ||
+			error.cause?.code !== PostgresErrorCode.FOREIGN_KEY_VIOLATION
+		) {
+			return;
+		}
+		const detail = error.cause.detail ?? '';
+		if (detail.includes('tenant_id')) {
+			throw DomainError.tenantNotFound();
+		}
+		if (detail.includes('user_id')) {
+			throw DomainError.userNotFound();
+		}
+		throw DomainError.badRequest({ message: 'Invalid reference' });
+	};
+
 	return {
 		create: async (input: NewSpecialist) => {
 			try {
@@ -42,6 +59,7 @@ export function createSpecialistRepository(
 					.returning();
 				return specialist;
 			} catch (error) {
+				mapSpecialistForeignKeyViolation(error);
 				mapSpecialistUniqueViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
@@ -84,6 +102,7 @@ export function createSpecialistRepository(
 					.returning();
 				return updated ?? null;
 			} catch (error) {
+				mapSpecialistForeignKeyViolation(error);
 				mapSpecialistUniqueViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
