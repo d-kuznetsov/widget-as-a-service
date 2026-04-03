@@ -57,7 +57,7 @@ export const refreshTokensTable = pgTable(
 	'refresh_tokens',
 	{
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
-		userId: integer()
+		userId: integer('user_id')
 			.notNull()
 			.references(() => usersTable.id, { onDelete: 'cascade' }),
 		tenantId: integer('tenant_id').references(() => tenantsTable.id, {
@@ -84,7 +84,7 @@ export const invitesTable = pgTable(
 	'invites',
 	{
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
-		tenantId: integer()
+		tenantId: integer('tenant_id')
 			.notNull()
 			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
 		email: varchar('email', { length: 255 }).notNull(),
@@ -106,14 +106,14 @@ export const tenantUserRolesTable = pgTable(
 	'tenant_user_roles',
 	{
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
-		tenantId: integer()
+		tenantId: integer('tenant_id')
 			.notNull()
 			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
-		userId: integer()
+		userId: integer('user_id')
 			.notNull()
 			.references(() => usersTable.id, { onDelete: 'cascade' }),
 		...timestamps,
-		roleId: integer()
+		roleId: integer('role_id')
 			.notNull()
 			.references(() => rolesTable.id, { onDelete: 'cascade' }),
 	},
@@ -127,15 +127,17 @@ export const specialistsTable = pgTable(
 	'specialists',
 	{
 		id: integer().primaryKey().generatedAlwaysAsIdentity(),
-		tenantId: integer()
+		tenantId: integer('tenant_id')
 			.notNull()
 			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
-		userId: integer().references(() => usersTable.id, { onDelete: 'cascade' }),
+		userId: integer('user_id').references(() => usersTable.id, {
+			onDelete: 'cascade',
+		}),
 		name: varchar('name', { length: 255 }).notNull(),
 		description: text('description').notNull().default(''),
 		...timestamps,
 	},
-	(table) => [unique().on(table.tenantId, table.userId, table.name)]
+	(table) => [unique().on(table.tenantId, table.userId)]
 );
 
 export type NewSpecialist = typeof specialistsTable.$inferInsert;
