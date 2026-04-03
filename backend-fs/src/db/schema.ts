@@ -161,3 +161,24 @@ export const servicesTable = pgTable('services', {
 
 export type NewService = typeof servicesTable.$inferInsert;
 export type Service = typeof servicesTable.$inferSelect;
+
+export const serviceSpecialistsTable = pgTable(
+	'service_specialists',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer('tenant_id')
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		serviceId: integer('service_id')
+			.notNull()
+			.references(() => servicesTable.id, { onDelete: 'cascade' }),
+		specialistId: integer('specialist_id')
+			.notNull()
+			.references(() => specialistsTable.id, { onDelete: 'cascade' }),
+		...timestamps,
+	},
+	(table) => [unique().on(table.serviceId, table.specialistId)]
+);
+
+export type NewServiceSpecialist = typeof serviceSpecialistsTable.$inferInsert;
+export type ServiceSpecialist = typeof serviceSpecialistsTable.$inferSelect;
