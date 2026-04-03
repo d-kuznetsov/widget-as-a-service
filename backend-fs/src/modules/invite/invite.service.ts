@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { Invite } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
+import type { SpecialistRepository } from '../specialist/specialist.repository';
 import { InviteRepository } from './invite.repository';
 import { InviteCreateInput } from './invite.schema';
 
@@ -13,15 +14,32 @@ function generateInviteToken(): string {
 
 type InviteCreateParams = InviteCreateInput & { tenantId: number };
 
+export interface InviteServiceDeps {
+	repo: InviteRepository;
+	specialistRepo: SpecialistRepository;
+}
+
 export interface InviteService {
 	create: (input: InviteCreateParams) => Promise<Invite>;
 	findByToken: (token: string) => Promise<Invite | null>;
 	delete: (id: number) => Promise<Invite>;
 }
 
-export function createInviteService(repo: InviteRepository): InviteService {
+export function createInviteService(deps: InviteServiceDeps): InviteService {
+	const { repo, specialistRepo } = deps;
 	return {
 		create: async (input: InviteCreateParams) => {
+			if (input.specialistId != null) {
+				const specialist = await specialistRepo.findOne(input.specialistId);
+				if (!specialist) {
+					throw DomainError.specialistNotFound();
+				}
+				if (specialist.tenantId !== input.tenantId) {
+					throw DomainError.badRequest({
+						message: 'Specialist does not belong to this tenant',
+					});
+				}
+			}
 			return repo.create({
 				...input,
 				token: generateInviteToken(),

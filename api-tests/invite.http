@@ -23,6 +23,17 @@ Authorization: Bearer {{accessToken}}
   "roleId": 50
 }
 
+### Create invite with specialist (links profile on register when invite has specialistId)
+POST {{baseUrl}}/tenants/9/invites
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "email": "specialist.user@example.com",
+  "roleId": 50,
+  "specialistId": 1
+}
+
 ### Delete invite (tenant admin)
 DELETE {{baseUrl}}/tenants/8/invites/53
 Authorization: Bearer {{accessToken}}

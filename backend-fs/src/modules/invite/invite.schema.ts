@@ -3,6 +3,7 @@ import { Type } from 'typebox';
 export const inviteCreateSchema = Type.Object({
 	email: Type.String({ format: 'email', maxLength: 255 }),
 	roleId: Type.Number(),
+	specialistId: Type.Optional(Type.Number()),
 });
 
 export const inviteResponseSchema = Type.Object({

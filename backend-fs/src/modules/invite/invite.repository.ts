@@ -37,6 +37,11 @@ export function createInviteRepository(db: NodePgDatabase): InviteRepository {
 							message: 'Role not found',
 						});
 					}
+					if (error.cause?.detail?.includes('specialist_id')) {
+						throw DomainError.specialistNotFound({
+							message: 'Specialist not found',
+						});
+					}
 				}
 				if (
 					isPgErrorWithCause(error) &&

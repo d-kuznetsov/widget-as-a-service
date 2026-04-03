@@ -35,6 +35,7 @@ export async function initInviteRouter(
 				email: request.body.email,
 				roleId: request.body.roleId,
 				tenantId: request.params.tenantId,
+				specialistId: request.body.specialistId,
 			});
 			reply.code(201);
 			return invite;
