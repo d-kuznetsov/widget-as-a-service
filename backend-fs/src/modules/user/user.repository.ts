@@ -1,8 +1,9 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, isNull } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	NewUser,
 	rolesTable,
+	specialistsTable,
 	tenantsTable,
 	tenantUserRolesTable,
 	User,
@@ -16,7 +17,12 @@ import {
 import { UserUpdateInput } from './user.schema';
 
 export interface UserRepository {
-	create: (newUser: NewUser, tenantId: number, roleId: number) => Promise<User>;
+	create: (
+		newUser: NewUser,
+		tenantId: number,
+		roleId: number,
+		specialistId?: number | null
+	) => Promise<User>;
 	findOne: (id: number) => Promise<User | null>;
 	findByEmail: (email: string) => Promise<User | null>;
 	getUserTenantContext: (
@@ -35,7 +41,12 @@ export interface UserRepository {
 
 export function createUserRepository(db: NodePgDatabase): UserRepository {
 	return {
-		create: async (newUser: NewUser, tenantId: number, roleId: number) => {
+		create: async (
+			newUser: NewUser,
+			tenantId: number,
+			roleId: number,
+			specialistId?: number | null
+		) => {
 			try {
 				return await db.transaction(async (tx) => {
 					const [user] = await tx
@@ -46,9 +57,33 @@ export function createUserRepository(db: NodePgDatabase): UserRepository {
 					await tx
 						.insert(tenantUserRolesTable)
 						.values({ userId: user.id, tenantId, roleId });
+
+					if (specialistId != null) {
+						const [linked] = await tx
+							.update(specialistsTable)
+							.set({ userId: user.id, updatedAt: new Date() })
+							.where(
+								and(
+									eq(specialistsTable.id, specialistId),
+									eq(specialistsTable.tenantId, tenantId),
+									isNull(specialistsTable.userId)
+								)
+							)
+							.returning();
+						if (!linked) {
+							throw DomainError.badRequest({
+								message:
+									'Specialist is missing, already linked, or not in this tenant',
+							});
+						}
+					}
+
 					return user;
 				});
 			} catch (error) {
+				if (error instanceof DomainError) {
+					throw error;
+				}
 				if (
 					isPgErrorWithCause(error) &&
 					error.cause?.code === PostgresErrorCode.UNIQUE_VIOLATION

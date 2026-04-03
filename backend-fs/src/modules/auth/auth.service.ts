@@ -103,7 +103,8 @@ export function createAuthService(deps: AuthServiceDeps): AuthService {
 			const user = await userService.create(
 				{ ...profile, password },
 				invite.tenantId,
-				invite.roleId
+				invite.roleId,
+				invite.specialistId
 			);
 
 			return issueLoginResponse(user, roleName as Role, invite.tenantId);

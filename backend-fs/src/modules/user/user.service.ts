@@ -8,7 +8,8 @@ export interface UserService {
 	create: (
 		input: UserCreateInput,
 		tenantId: number,
-		roleId: number
+		roleId: number,
+		specialistId?: number | null
 	) => Promise<User>;
 	findOne: (id: number) => Promise<User>;
 	findByEmail: (email: string) => Promise<User>;
@@ -27,13 +28,13 @@ export interface UserService {
 
 export function createUserService(repo: UserRepository): UserService {
 	return {
-		create: async (input, tenantId, roleId) => {
+		create: async (input, tenantId, roleId, specialistId) => {
 			const { password, ...rest } = input;
 			const newUser = {
 				...rest,
 				passwordHash: await hashPassword(password),
 			};
-			return repo.create(newUser, tenantId, roleId);
+			return repo.create(newUser, tenantId, roleId, specialistId);
 		},
 		findOne: async (id: number) => {
 			const user = await repo.findOne(id);

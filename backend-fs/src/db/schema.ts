@@ -80,6 +80,26 @@ export const refreshTokensTable = pgTable(
 export type NewRefreshToken = typeof refreshTokensTable.$inferInsert;
 export type RefreshToken = typeof refreshTokensTable.$inferSelect;
 
+export const specialistsTable = pgTable(
+	'specialists',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer('tenant_id')
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		userId: integer('user_id').references(() => usersTable.id, {
+			onDelete: 'cascade',
+		}),
+		name: varchar('name', { length: 255 }).notNull(),
+		description: text('description').notNull().default(''),
+		...timestamps,
+	},
+	(table) => [unique().on(table.tenantId, table.userId)]
+);
+
+export type NewSpecialist = typeof specialistsTable.$inferInsert;
+export type Specialist = typeof specialistsTable.$inferSelect;
+
 export const invitesTable = pgTable(
 	'invites',
 	{
@@ -92,6 +112,10 @@ export const invitesTable = pgTable(
 		roleId: integer('role')
 			.notNull()
 			.references(() => rolesTable.id, { onDelete: 'cascade' }),
+		specialistId: integer('specialist_id').references(
+			() => specialistsTable.id,
+			{ onDelete: 'cascade' }
+		),
 		expiresAt: timestamp('expires_at').notNull(),
 		used: boolean('used').notNull().default(false),
 		createdAt: timestamps.createdAt,
@@ -122,23 +146,3 @@ export const tenantUserRolesTable = pgTable(
 
 export type NewTenantMember = typeof tenantUserRolesTable.$inferInsert;
 export type TenantMember = typeof tenantUserRolesTable.$inferSelect;
-
-export const specialistsTable = pgTable(
-	'specialists',
-	{
-		id: integer().primaryKey().generatedAlwaysAsIdentity(),
-		tenantId: integer('tenant_id')
-			.notNull()
-			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
-		userId: integer('user_id').references(() => usersTable.id, {
-			onDelete: 'cascade',
-		}),
-		name: varchar('name', { length: 255 }).notNull(),
-		description: text('description').notNull().default(''),
-		...timestamps,
-	},
-	(table) => [unique().on(table.tenantId, table.userId)]
-);
-
-export type NewSpecialist = typeof specialistsTable.$inferInsert;
-export type Specialist = typeof specialistsTable.$inferSelect;
