@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+# Replace after login; path tenant must match JWT tenantId (unless super_admin).
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjM2NzYwLCJleHAiOjE3NzUyNDAzNjB9._RB9vM7FV3dEQWD2Q_ivISYSz3LAQR4bXUHcorFjfpA
+
+@tenantId = 9
+@serviceId = 1
+
+### List services for tenant
+GET {{baseUrl}}/tenants/{{tenantId}}/services
+Authorization: Bearer {{accessToken}}
+
+### Create service
+POST {{baseUrl}}/tenants/{{tenantId}}/services
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Initial consultation",
+  "duration": 30,
+  "price": "49.99"
+}
+
+### Create service (different offering)
+POST {{baseUrl}}/tenants/{{tenantId}}/services
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Follow-up visit",
+  "duration": 15,
+  "price": "25.00"
+}
+
+### Get service by id
+GET {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}
+Authorization: Bearer {{accessToken}}
+
+### Update service
+PUT {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Initial consultation (extended)",
+  "duration": 45,
+  "price": "59.99"
+}
+
+### Update service (partial — only price)
+PUT {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "price": "54.99"
+}
+
+### Delete service
+DELETE {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}
+Authorization: Bearer {{accessToken}}
