@@ -2,11 +2,10 @@
 @contentType = application/json
 
 # Replace after login; path tenant must match JWT tenantId (unless super_admin).
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjM2NzYwLCJleHAiOjE3NzUyNDAzNjB9._RB9vM7FV3dEQWD2Q_ivISYSz3LAQR4bXUHcorFjfpA
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjQ3NTYyLCJleHAiOjE3NzUyNTExNjJ9.RDhD2tlxMweG8uBXsdyjS7kMpmB-nshodgIstq9rH4o
 
-@tenantId = 9
-@serviceId = 1
-
+@tenantId = 91
+@serviceId = 5
 ### List services for tenant
 GET {{baseUrl}}/tenants/{{tenantId}}/services
 Authorization: Bearer {{accessToken}}
@@ -20,17 +19,6 @@ Authorization: Bearer {{accessToken}}
   "name": "Initial consultation",
   "duration": 30,
   "price": "49.99"
-}
-
-### Create service (different offering)
-POST {{baseUrl}}/tenants/{{tenantId}}/services
-Content-Type: {{contentType}}
-Authorization: Bearer {{accessToken}}
-
-{
-  "name": "Follow-up visit",
-  "duration": 15,
-  "price": "25.00"
 }
 
 ### Get service by id

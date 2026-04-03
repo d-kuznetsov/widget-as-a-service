@@ -1,7 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Service, servicesTable } from '../../db/schema';
-import { DataBaseError } from '../../shared/errors';
+import { DataBaseError, DomainError } from '../../shared/errors';
+import {
+	isPgErrorWithCause,
+	PostgresErrorCode,
+} from '../../shared/utils/pg-errors';
 import { ServiceCreateInput, ServiceUpdateInput } from './service.schema';
 
 export interface ServiceRepository {
@@ -14,6 +18,20 @@ export interface ServiceRepository {
 }
 
 export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
+	const mapServiceForeignKeyViolation = (error: unknown) => {
+		if (
+			!isPgErrorWithCause(error) ||
+			error.cause?.code !== PostgresErrorCode.FOREIGN_KEY_VIOLATION
+		) {
+			return;
+		}
+		const detail = error.cause.detail ?? '';
+		if (detail.includes('tenant_id')) {
+			throw DomainError.tenantNotFound();
+		}
+		throw DomainError.badRequest({ message: 'Invalid reference' });
+	};
+
 	return {
 		create: async (tenantId: number, input: ServiceCreateInput) => {
 			try {
@@ -23,6 +41,7 @@ export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
 					.returning();
 				return row;
 			} catch (error) {
+				mapServiceForeignKeyViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
@@ -64,6 +83,7 @@ export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
 					.returning();
 				return updated ?? null;
 			} catch (error) {
+				mapServiceForeignKeyViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
