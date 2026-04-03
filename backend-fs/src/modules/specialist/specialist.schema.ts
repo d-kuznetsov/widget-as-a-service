@@ -21,5 +21,13 @@ export const specialistParamsSchema = Type.Object({
 	id: Type.Number(),
 });
 
+export const specialistResponseSchema = Type.Object({
+	id: Type.Number(),
+	tenantId: Type.Number(),
+	userId: Type.Number(),
+	name: Type.String(),
+	description: Type.String(),
+});
+
 export type SpecialistCreateInput = Type.Static<typeof specialistCreateSchema>;
 export type SpecialistUpdateInput = Type.Static<typeof specialistUpdateSchema>;
