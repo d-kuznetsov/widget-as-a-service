@@ -8,5 +8,22 @@ export const serviceCreateSchema = Type.Object({
 
 export const serviceUpdateSchema = Type.Partial(serviceCreateSchema);
 
+export const serviceBaseParamsSchema = Type.Object({
+	tenantId: Type.Number(),
+});
+
+export const serviceParamsSchema = Type.Object({
+	...serviceBaseParamsSchema.properties,
+	id: Type.Number(),
+});
+
+export const serviceResponseSchema = Type.Object({
+	id: Type.Number(),
+	tenantId: Type.Number(),
+	name: Type.String(),
+	duration: Type.Integer(),
+	price: Type.String(),
+});
+
 export type ServiceCreateInput = Type.Static<typeof serviceCreateSchema>;
 export type ServiceUpdateInput = Type.Static<typeof serviceUpdateSchema>;

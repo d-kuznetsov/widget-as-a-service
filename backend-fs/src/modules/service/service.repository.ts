@@ -8,6 +8,7 @@ export interface ServiceRepository {
 	create: (tenantId: number, input: ServiceCreateInput) => Promise<Service>;
 	findOne: (id: number) => Promise<Service | null>;
 	findAll: () => Promise<Service[]>;
+	findAllByTenant: (tenantId: number) => Promise<Service[]>;
 	update: (id: number, input: ServiceUpdateInput) => Promise<Service | null>;
 	delete: (id: number) => Promise<Service>;
 }
@@ -40,6 +41,16 @@ export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
 		findAll: async () => {
 			try {
 				return await db.select().from(servicesTable);
+			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		findAllByTenant: async (tenantId: number) => {
+			try {
+				return await db
+					.select()
+					.from(servicesTable)
+					.where(eq(servicesTable.tenantId, tenantId));
 			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}

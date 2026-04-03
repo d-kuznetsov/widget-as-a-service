@@ -6,7 +6,7 @@ import { ServiceCreateInput, ServiceUpdateInput } from './service.schema';
 export interface ServiceService {
 	create: (tenantId: number, input: ServiceCreateInput) => Promise<Service>;
 	findOne: (id: number) => Promise<Service>;
-	findAll: () => Promise<Service[]>;
+	findAll: (tenantId: number) => Promise<Service[]>;
 	update: (id: number, input: ServiceUpdateInput) => Promise<Service>;
 	delete: (id: number) => Promise<Service>;
 }
@@ -23,8 +23,8 @@ export function createServiceService(repo: ServiceRepository): ServiceService {
 			}
 			return service;
 		},
-		findAll: async () => {
-			return repo.findAll();
+		findAll: async (tenantId: number) => {
+			return repo.findAllByTenant(tenantId);
 		},
 		update: async (id: number, input: ServiceUpdateInput) => {
 			const service = await repo.update(id, input);

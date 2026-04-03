@@ -10,6 +10,11 @@ import {
 	initInviteRouter,
 } from './modules/invite';
 import {
+	createServiceRepository,
+	createServiceService,
+	initServiceRouter,
+} from './modules/service';
+import {
 	createSpecialistRepository,
 	createSpecialistService,
 	initSpecialistRouter,
@@ -72,6 +77,13 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 	await fastify.register(initSpecialistRouter, {
 		prefix: '/tenants/:tenantId/specialists',
 		service: specialistService,
+	});
+	const serviceService = createServiceService(
+		createServiceRepository(fastify.db)
+	);
+	await fastify.register(initServiceRouter, {
+		prefix: '/tenants/:tenantId/services',
+		service: serviceService,
 	});
 };
 
