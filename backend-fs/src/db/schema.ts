@@ -3,6 +3,7 @@ import {
 	foreignKey,
 	integer,
 	pgTable,
+	text,
 	timestamp,
 	unique,
 	varchar,
@@ -121,3 +122,23 @@ export const tenantUserRolesTable = pgTable(
 
 export type NewTenantMember = typeof tenantUserRolesTable.$inferInsert;
 export type TenantMember = typeof tenantUserRolesTable.$inferSelect;
+
+export const specialistsTable = pgTable(
+	'specialists',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer()
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		userId: integer()
+			.notNull()
+			.references(() => usersTable.id, { onDelete: 'cascade' }),
+		name: varchar('name', { length: 255 }).notNull().unique(),
+		description: text('description').notNull().default(''),
+		...timestamps,
+	},
+	(table) => [unique().on(table.tenantId, table.name)]
+);
+
+export type NewSpecialist = typeof specialistsTable.$inferInsert;
+export type Specialist = typeof specialistsTable.$inferSelect;
