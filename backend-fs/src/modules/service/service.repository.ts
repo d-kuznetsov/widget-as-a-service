@@ -1,6 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { Service, servicesTable } from '../../db/schema';
+import {
+	Service,
+	ServiceSpecialist,
+	serviceSpecialistsTable,
+	servicesTable,
+} from '../../db/schema';
 import { DataBaseError, DomainError } from '../../shared/errors';
 import {
 	isPgErrorWithCause,
@@ -15,6 +20,11 @@ export interface ServiceRepository {
 	findAllByTenant: (tenantId: number) => Promise<Service[]>;
 	update: (id: number, input: ServiceUpdateInput) => Promise<Service | null>;
 	delete: (id: number) => Promise<Service>;
+	connectSpecialist: (
+		tenantId: number,
+		serviceId: number,
+		specialistId: number
+	) => Promise<ServiceSpecialist>;
 }
 
 export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
@@ -28,6 +38,41 @@ export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
 		const detail = error.cause.detail ?? '';
 		if (detail.includes('tenant_id')) {
 			throw DomainError.tenantNotFound();
+		}
+		throw DomainError.badRequest({ message: 'Invalid reference' });
+	};
+
+	const mapServiceSpecialistUniqueViolation = (error: unknown) => {
+		if (
+			!isPgErrorWithCause(error) ||
+			error.cause?.code !== PostgresErrorCode.UNIQUE_VIOLATION
+		) {
+			return;
+		}
+		const detail = error.cause.detail ?? '';
+		if (detail.includes('service_id') && detail.includes('specialist_id')) {
+			throw DomainError.badRequest({
+				message: 'Service is already linked to this specialist',
+			});
+		}
+	};
+
+	const mapServiceSpecialistForeignKeyViolation = (error: unknown) => {
+		if (
+			!isPgErrorWithCause(error) ||
+			error.cause?.code !== PostgresErrorCode.FOREIGN_KEY_VIOLATION
+		) {
+			return;
+		}
+		const detail = error.cause.detail ?? '';
+		if (detail.includes('tenant_id')) {
+			throw DomainError.tenantNotFound();
+		}
+		if (detail.includes('service_id')) {
+			throw DomainError.serviceNotFound();
+		}
+		if (detail.includes('specialist_id')) {
+			throw DomainError.specialistNotFound();
 		}
 		throw DomainError.badRequest({ message: 'Invalid reference' });
 	};
@@ -95,6 +140,23 @@ export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
 					.returning();
 				return deleted ?? null;
 			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		connectSpecialist: async (
+			tenantId: number,
+			serviceId: number,
+			specialistId: number
+		) => {
+			try {
+				const [row] = await db
+					.insert(serviceSpecialistsTable)
+					.values({ tenantId, serviceId, specialistId })
+					.returning();
+				return row;
+			} catch (error) {
+				mapServiceSpecialistUniqueViolation(error);
+				mapServiceSpecialistForeignKeyViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
