@@ -46,6 +46,7 @@ export enum DomainErrorCode {
 	INVITE_NOT_FOUND = 'INVITE_NOT_FOUND',
 	INVITE_EXPIRED = 'INVITE_EXPIRED',
 	INVITE_ALREADY_USED = 'INVITE_ALREADY_USED',
+	SPECIALIST_NAME_ALREADY_EXISTS = 'SPECIALIST_NAME_ALREADY_EXISTS',
 }
 
 export class DomainError extends AppError {
@@ -137,6 +138,13 @@ export class DomainError extends AppError {
 		return new DomainError({
 			message: 'Invite already exists',
 			code: DomainErrorCode.INVITE_ALREADY_EXISTS,
+			...params,
+		});
+	}
+	static specialistNameAlreadyExists(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Specialist name already exists',
+			code: DomainErrorCode.SPECIALIST_NAME_ALREADY_EXISTS,
 			...params,
 		});
 	}
