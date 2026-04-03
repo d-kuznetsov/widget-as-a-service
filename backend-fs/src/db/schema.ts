@@ -130,14 +130,12 @@ export const specialistsTable = pgTable(
 		tenantId: integer()
 			.notNull()
 			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
-		userId: integer()
-			.notNull()
-			.references(() => usersTable.id, { onDelete: 'cascade' }),
-		name: varchar('name', { length: 255 }).notNull().unique(),
+		userId: integer().references(() => usersTable.id, { onDelete: 'cascade' }),
+		name: varchar('name', { length: 255 }).notNull(),
 		description: text('description').notNull().default(''),
 		...timestamps,
 	},
-	(table) => [unique().on(table.tenantId, table.name)]
+	(table) => [unique().on(table.tenantId, table.userId, table.name)]
 );
 
 export type NewSpecialist = typeof specialistsTable.$inferInsert;

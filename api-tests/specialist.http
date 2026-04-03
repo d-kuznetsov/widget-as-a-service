@@ -1,0 +1,73 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+# Replace after login; path tenant must match JWT tenantId (unless super_admin).
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQyLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOjksImlhdCI6MTc3NDkwMzA3NCwiZXhwIjoxNzc0OTA2Njc0fQ.lYUanh0VG-lsyJGJosSFdcEtxAimC1kJeYlNoGEXbz4
+
+@tenantId = 9
+@specialistId = 1
+# Required on create: user id (tenant member) or null for unlinked. If a number, must satisfy FK on specialists.user_id.
+@userId = 42
+
+### List specialists for tenant
+GET {{baseUrl}}/tenants/{{tenantId}}/specialists
+Authorization: Bearer {{accessToken}}
+
+### Create specialist
+POST {{baseUrl}}/tenants/{{tenantId}}/specialists
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "userId": {{userId}},
+  "name": "Dr. Example",
+  "description": "Primary care"
+}
+
+### Create specialist (minimal — description optional)
+POST {{baseUrl}}/tenants/{{tenantId}}/specialists
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "userId": {{userId}},
+  "name": "Dr. Another"
+}
+
+### Create specialist (no linked user — userId must be null)
+POST {{baseUrl}}/tenants/{{tenantId}}/specialists
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "userId": null,
+  "name": "Dr. Unlinked",
+  "description": "Placeholder until account exists"
+}
+
+### Get specialist by id
+GET {{baseUrl}}/tenants/{{tenantId}}/specialists/{{specialistId}}
+Authorization: Bearer {{accessToken}}
+
+### Update specialist
+PUT {{baseUrl}}/tenants/{{tenantId}}/specialists/{{specialistId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Dr. Example Updated",
+  "description": "Updated bio"
+}
+
+### Update specialist (partial — only name)
+PUT {{baseUrl}}/tenants/{{tenantId}}/specialists/{{specialistId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "name": "Dr. Example Renamed"
+}
+
+### Delete specialist
+DELETE {{baseUrl}}/tenants/{{tenantId}}/specialists/{{specialistId}}
+Authorization: Bearer {{accessToken}}

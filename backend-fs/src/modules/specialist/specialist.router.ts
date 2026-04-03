@@ -30,13 +30,7 @@ export async function initSpecialistRouter(
 				403: Type.Object({ message: Type.String() }),
 			},
 		},
-		onRequest: [
-			fastify.authenticate([
-				Roles.TENANT_ADMIN,
-				Roles.SUPER_ADMIN,
-				Roles.SPECIALIST,
-			]),
-		],
+		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request, reply) => {
 			const specialist = await service.create({
 				...request.body,
@@ -55,13 +49,7 @@ export async function initSpecialistRouter(
 				403: Type.Object({ message: Type.String() }),
 			},
 		},
-		onRequest: [
-			fastify.authenticate([
-				Roles.TENANT_ADMIN,
-				Roles.SUPER_ADMIN,
-				Roles.SPECIALIST,
-			]),
-		],
+		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request) => {
 			return service.findAll(request.params.tenantId);
 		},
@@ -75,13 +63,7 @@ export async function initSpecialistRouter(
 				403: Type.Object({ message: Type.String() }),
 			},
 		},
-		onRequest: [
-			fastify.authenticate([
-				Roles.TENANT_ADMIN,
-				Roles.SUPER_ADMIN,
-				Roles.SPECIALIST,
-			]),
-		],
+		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
 		handler: async (request) => {
 			return service.findOne(request.params.id);
 		},

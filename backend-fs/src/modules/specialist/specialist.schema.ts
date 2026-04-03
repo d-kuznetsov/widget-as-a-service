@@ -1,7 +1,7 @@
 import { Type } from 'typebox';
 
 export const specialistBaseSchema = Type.Object({
-	userId: Type.Number(),
+	userId: Type.Union([Type.Number(), Type.Null()]),
 	name: Type.String({ minLength: 1, maxLength: 255 }),
 	description: Type.Optional(Type.String()),
 });
@@ -24,7 +24,7 @@ export const specialistParamsSchema = Type.Object({
 export const specialistResponseSchema = Type.Object({
 	id: Type.Number(),
 	tenantId: Type.Number(),
-	userId: Type.Number(),
+	userId: Type.Union([Type.Number(), Type.Null()]),
 	name: Type.String(),
 	description: Type.String(),
 });
