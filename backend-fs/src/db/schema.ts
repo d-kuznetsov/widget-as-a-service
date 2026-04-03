@@ -2,6 +2,7 @@ import {
 	boolean,
 	foreignKey,
 	integer,
+	numeric,
 	pgTable,
 	text,
 	timestamp,
@@ -146,3 +147,17 @@ export const tenantUserRolesTable = pgTable(
 
 export type NewTenantMember = typeof tenantUserRolesTable.$inferInsert;
 export type TenantMember = typeof tenantUserRolesTable.$inferSelect;
+
+export const servicesTable = pgTable('services', {
+	id: integer().primaryKey().generatedAlwaysAsIdentity(),
+	tenantId: integer('tenant_id')
+		.notNull()
+		.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+	name: varchar('name', { length: 255 }).notNull(),
+	duration: integer('duration').notNull(),
+	price: numeric('price').notNull(),
+	...timestamps,
+});
+
+export type NewService = typeof servicesTable.$inferInsert;
+export type Service = typeof servicesTable.$inferSelect;
