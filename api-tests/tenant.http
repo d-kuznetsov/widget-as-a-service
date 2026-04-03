@@ -1,6 +1,6 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQyLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOjksImlhdCI6MTc3NDkwMzA3NCwiZXhwIjoxNzc0OTA2Njc0fQ.lYUanh0VG-lsyJGJosSFdcEtxAimC1kJeYlNoGEXbz4
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjMwODM5LCJleHAiOjE3NzUyMzQ0Mzl9.48Iw-tbkE9MvOJq0To5ZIlGRKhAdPjZVbP2IJ8eedS8
 
 ### Create tenant
 POST {{baseUrl}}/tenants

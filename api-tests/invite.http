@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
 
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQyLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOjksImlhdCI6MTc3NDkwMzA3NCwiZXhwIjoxNzc0OTA2Njc0fQ.lYUanh0VG-lsyJGJosSFdcEtxAimC1kJeYlNoGEXbz4
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjM2NDA1LCJleHAiOjE3NzUyNDAwMDV9.T_BY-FsJGN1kQdKFAQHJaNTppX6kfchDAHWk0dm4mgw
 
 ### Create invite (super admin — tenant in path)
 POST {{baseUrl}}/tenants/9/invites
@@ -10,7 +10,8 @@ Authorization: Bearer {{accessToken}}
 
 {
   "email": "michael.scott@example.com",
-  "roleId": 50
+  "roleId": 51,
+  "specialistId": 8
 }
 
 ### Create invite (tenant admin — path must match JWT tenantId)

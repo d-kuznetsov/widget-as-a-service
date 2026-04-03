@@ -2,7 +2,7 @@
 @contentType = application/json
 
 # Replace after login; path tenant must match JWT tenantId (unless super_admin).
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjMwODM5LCJleHAiOjE3NzUyMzQ0Mzl9.48Iw-tbkE9MvOJq0To5ZIlGRKhAdPjZVbP2IJ8eedS8
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjM2NzYwLCJleHAiOjE3NzUyNDAzNjB9._RB9vM7FV3dEQWD2Q_ivISYSz3LAQR4bXUHcorFjfpA
 
 @tenantId = 9
 @specialistId = 1
@@ -19,8 +19,9 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-  "name": "Michael Scott",
-  "description": "Michael Scott is the best boss ever."
+  "name": "Michael Scott 2",
+  "description": "Michael Scott is the best boss ever.",
+  "userId": 44
 }
 
 ### Create specialist (minimal — description optional)

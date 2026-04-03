@@ -1,17 +1,17 @@
 @baseUrl = http://localhost:3000
 @contentType = application/json
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjM2LCJzY29wZSI6WyJ1c2VyIl0sImlhdCI6MTc3NDQ3OTA1NywiZXhwIjoxNzc0NDgyNjU3fQ.BnQAm9KsuMSWJqcjfuiINPskrzj_96HCy5RLp9Imojc
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjMwODM5LCJleHAiOjE3NzUyMzQ0Mzl9.48Iw-tbkE9MvOJq0To5ZIlGRKhAdPjZVbP2IJ8eedS8
 
-### Register (invite token from POST /invites)
+### Register (invite token from POST /tenants/:tenantId/invites)
 POST {{baseUrl}}/auth/register
 Content-Type: {{contentType}}
 
 {
-  "email": "user@example.com",
-  "password": "P@ssw0rd",
-  "firstName": "Jane",
-  "lastName": "Doe",
-  "token": "a12075e19a645097de1cd91cfc03fca1cb4c7bd55015aef1f2c00c7f05c18df6"
+  "email": "michael.scott@example.com",
+  "password": "password",
+  "firstName": "Michael",
+  "lastName": "Scott",
+  "token": "9b78ac8699963cf68b8e127b6a922d163c3dd07c50d1b739d4fcc671df4bf0b1"
 }
 
 ### Login
@@ -21,7 +21,7 @@ Content-Type: {{contentType}}
 {
   "email": "admin@example.com",
   "password": "password",
-  "slug": "your-tenant-slug"
+  "slug": "admin"
 }
 
 ### Refresh token
@@ -29,7 +29,7 @@ POST {{baseUrl}}/auth/refresh
 Content-Type: {{contentType}}
 
 {
-  "refreshToken": "c64a74ac69972e4cff2261204ea2e4a96baf8985ea40ae05cf0bdcf3b172089d"
+  "refreshToken": "2bb1b2e1343879a504c29f97ab132c7fb80fe322ae95462b3130243d400fc5ca"
 }
 
 ### Logout (invalidate single refresh token)
