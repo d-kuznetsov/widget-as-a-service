@@ -5,6 +5,7 @@ const mapErrorToStatusCode = (error: AppError) => {
 	switch (error.code) {
 		case DomainErrorCode.USER_NOT_FOUND:
 		case DomainErrorCode.TENANT_NOT_FOUND:
+		case DomainErrorCode.SPECIALIST_NOT_FOUND:
 			return 404;
 		case DomainErrorCode.USER_ALREADY_EXISTS:
 		case DomainErrorCode.TENANT_SLUG_ALREADY_EXISTS:

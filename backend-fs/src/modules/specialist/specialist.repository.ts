@@ -12,6 +12,7 @@ export interface SpecialistRepository {
 	create: (input: NewSpecialist) => Promise<Specialist>;
 	findOne: (id: number) => Promise<Specialist | null>;
 	findAll: () => Promise<Specialist[]>;
+	findAllByTenant: (tenantId: number) => Promise<Specialist[]>;
 	update: (
 		id: number,
 		input: SpecialistUpdateInput
@@ -60,6 +61,16 @@ export function createSpecialistRepository(
 		findAll: async () => {
 			try {
 				return await db.select().from(specialistsTable);
+			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		findAllByTenant: async (tenantId: number) => {
+			try {
+				return await db
+					.select()
+					.from(specialistsTable)
+					.where(eq(specialistsTable.tenantId, tenantId));
 			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}
