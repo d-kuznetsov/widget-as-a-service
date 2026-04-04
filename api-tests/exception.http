@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+# Replace after login; path tenant must match JWT tenantId (unless super_admin).
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MzA3OTI3LCJleHAiOjE3NzUzMTE1Mjd9.RfzZW7PxpN15LezJgZ8GKOE8P7M17c1vHpxwPdPagus
+
+@tenantId = 9
+@specialistId = 8
+@exceptionId = 1
+
+
+### Create exception (specialist must belong to tenant)
+POST {{baseUrl}}/tenants/{{tenantId}}/exceptions
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "specialistId": {{specialistId}},
+  "date": "2026-04-15",
+  "startTime": "10:00:00",
+  "endTime": "14:00:00",
+  "reason": "Conference"
+}
+
+### List exceptions for tenant
+GET {{baseUrl}}/tenants/{{tenantId}}/exceptions
+Authorization: Bearer {{accessToken}}
+
+### Get exception by id
+GET {{baseUrl}}/tenants/{{tenantId}}/exceptions/{{exceptionId}}
+Authorization: Bearer {{accessToken}}
+
+### Update exception
+PUT {{baseUrl}}/tenants/{{tenantId}}/exceptions/{{exceptionId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "startTime": "09:00:00",
+  "endTime": "13:00:00",
+  "reason": "Updated: half day"
+}
+
+### Update exception (partial — only reason)
+PUT {{baseUrl}}/tenants/{{tenantId}}/exceptions/{{exceptionId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "reason": "Personal"
+}
+
+### Delete exception
+DELETE {{baseUrl}}/tenants/{{tenantId}}/exceptions/{{exceptionId}}
+Authorization: Bearer {{accessToken}}
