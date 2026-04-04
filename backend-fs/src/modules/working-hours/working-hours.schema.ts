@@ -36,6 +36,18 @@ export const workingHoursUpdateSchema = Type.Partial(
 	})
 );
 
+export const workingHoursResponseSchema = Type.Object({
+	id: Type.Number(),
+	tenantId: Type.Number(),
+	specialistId: Type.Number(),
+	dayOfWeek: weekdaySchema,
+	startTime: Type.String(),
+	endTime: Type.String(),
+	isActive: Type.Boolean(),
+	createdAt: Type.Any(),
+	updatedAt: Type.Any(),
+});
+
 export type WorkingHoursCreateInput = Type.Static<
 	typeof workingHoursCreateSchema
 >;

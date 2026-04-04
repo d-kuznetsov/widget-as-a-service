@@ -29,6 +29,11 @@ import {
 	createUserService,
 	initUserRouter,
 } from './modules/user';
+import {
+	createWorkingHoursRepository,
+	createWorkingHoursService,
+	initWorkingHoursRouter,
+} from './modules/working-hours';
 import authPlugin from './plugins/auth.plugin';
 import cookiePlugin from './plugins/cookie.plugin';
 import dbPlugin from './plugins/db.plugin';
@@ -85,6 +90,14 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 	await fastify.register(initServiceRouter, {
 		prefix: '/tenants/:tenantId/services',
 		service: serviceService,
+	});
+	const workingHoursService = createWorkingHoursService({
+		repo: createWorkingHoursRepository(fastify.db),
+		specialistRepo,
+	});
+	await fastify.register(initWorkingHoursRouter, {
+		prefix: '/tenants/:tenantId/working-hours',
+		service: workingHoursService,
 	});
 };
 

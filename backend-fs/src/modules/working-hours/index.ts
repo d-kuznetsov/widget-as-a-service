@@ -3,6 +3,10 @@ export {
 	type WorkingHoursRepository,
 } from './working-hours.repository';
 export {
+	initWorkingHoursRouter,
+	type WorkingHoursRouterOptions,
+} from './working-hours.router';
+export {
 	createWorkingHoursService,
 	type WorkingHoursService,
 	type WorkingHoursServiceDeps,
