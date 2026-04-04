@@ -25,6 +25,15 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}
 Authorization: Bearer {{accessToken}}
 
+### Assign specialist to service (same tenant)
+POST {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}/specialists
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "specialistId": 3
+}
+
 ### Update service
 PUT {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}
 Content-Type: {{contentType}}

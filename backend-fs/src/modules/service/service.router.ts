@@ -3,10 +3,12 @@ import { FastifyInstance } from 'fastify';
 import { Type } from 'typebox';
 import { Roles } from '../../shared/utils/roles';
 import {
+	assignSpecialistToServiceBodySchema,
 	serviceBaseParamsSchema,
 	serviceCreateSchema,
 	serviceParamsSchema,
 	serviceResponseSchema,
+	serviceSpecialistResponseSchema,
 	serviceUpdateSchema,
 } from './service.schema';
 import { ServiceService } from './service.service';
@@ -55,6 +57,25 @@ export async function initServiceRouter(
 		],
 		handler: (request) => {
 			return service.findAll(request.params.tenantId);
+		},
+	});
+	fastify.withTypeProvider<TypeBoxTypeProvider>().post('/:id/specialists', {
+		schema: {
+			params: serviceParamsSchema,
+			body: assignSpecialistToServiceBodySchema,
+			response: {
+				201: serviceSpecialistResponseSchema,
+			},
+		},
+		onRequest: [fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN])],
+		handler: async (request, reply) => {
+			const row = await service.assignSpecialistToService(
+				request.params.tenantId,
+				request.params.id,
+				request.body.specialistId
+			);
+			reply.code(201);
+			return row;
 		},
 	});
 	fastify.withTypeProvider<TypeBoxTypeProvider>().get('/:id', {

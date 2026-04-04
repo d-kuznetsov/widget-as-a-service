@@ -25,5 +25,18 @@ export const serviceResponseSchema = Type.Object({
 	price: Type.String(),
 });
 
+export const assignSpecialistToServiceBodySchema = Type.Object({
+	specialistId: Type.Number(),
+});
+
+export const serviceSpecialistResponseSchema = Type.Object({
+	id: Type.Number(),
+	tenantId: Type.Number(),
+	serviceId: Type.Number(),
+	specialistId: Type.Number(),
+	createdAt: Type.Any(),
+	updatedAt: Type.Any(),
+});
+
 export type ServiceCreateInput = Type.Static<typeof serviceCreateSchema>;
 export type ServiceUpdateInput = Type.Static<typeof serviceUpdateSchema>;
