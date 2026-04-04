@@ -3,8 +3,10 @@ import {
 	foreignKey,
 	integer,
 	numeric,
+	pgEnum,
 	pgTable,
 	text,
+	time,
 	timestamp,
 	unique,
 	varchar,
@@ -182,3 +184,37 @@ export const serviceSpecialistsTable = pgTable(
 
 export type NewServiceSpecialist = typeof serviceSpecialistsTable.$inferInsert;
 export type ServiceSpecialist = typeof serviceSpecialistsTable.$inferSelect;
+
+export const weekdayEnum = pgEnum('weekday', [
+	'monday',
+	'tuesday',
+	'wednesday',
+	'thursday',
+	'friday',
+	'saturday',
+	'sunday',
+]);
+
+export type Weekday = (typeof weekdayEnum.enumValues)[number];
+
+export const workingHoursTable = pgTable(
+	'working_hours',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer('tenant_id')
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		specialistId: integer('specialist_id')
+			.notNull()
+			.references(() => specialistsTable.id, { onDelete: 'cascade' }),
+		dayOfWeek: weekdayEnum('day_of_week').notNull(),
+		startTime: time('start_time').notNull(),
+		endTime: time('end_time').notNull(),
+		isActive: boolean('is_active').notNull().default(true),
+		...timestamps,
+	},
+	(table) => [unique().on(table.specialistId, table.dayOfWeek)]
+);
+
+export type NewWorkingHour = typeof workingHoursTable.$inferInsert;
+export type WorkingHour = typeof workingHoursTable.$inferSelect;
