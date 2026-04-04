@@ -20,6 +20,11 @@ export interface ServiceService {
 		serviceId: number,
 		specialistId: number
 	) => Promise<ServiceSpecialist>;
+	unassignSpecialistFromService: (
+		tenantId: number,
+		serviceId: number,
+		specialistId: number
+	) => Promise<ServiceSpecialist>;
 }
 
 export function createServiceService(deps: ServiceServiceDeps): ServiceService {
@@ -66,6 +71,32 @@ export function createServiceService(deps: ServiceServiceDeps): ServiceService {
 				throw DomainError.specialistNotFound();
 			}
 			return repo.assignSpecialistToService(tenantId, serviceId, specialistId);
+		},
+		unassignSpecialistFromService: async (
+			tenantId: number,
+			serviceId: number,
+			specialistId: number
+		) => {
+			// Maybe just use the repo.unassignSpecialistFromService directly?
+			const service = await repo.findOne(serviceId);
+			if (!service || service.tenantId !== tenantId) {
+				throw DomainError.serviceNotFound();
+			}
+			const specialist = await specialistRepo.findOne(specialistId);
+			if (!specialist || specialist.tenantId !== tenantId) {
+				throw DomainError.specialistNotFound();
+			}
+			const removed = await repo.unassignSpecialistFromService(
+				tenantId,
+				serviceId,
+				specialistId
+			);
+			if (!removed) {
+				throw DomainError.badRequest({
+					message: 'Specialist is not assigned to this service',
+				});
+			}
+			return removed;
 		},
 	};
 }
