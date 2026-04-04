@@ -5,6 +5,11 @@ import {
 	initAuthRouter,
 } from './modules/auth';
 import {
+	createExceptionRepository,
+	createExceptionService,
+	initExceptionRouter,
+} from './modules/exception';
+import {
 	createInviteRepository,
 	createInviteService,
 	initInviteRouter,
@@ -98,6 +103,14 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 	await fastify.register(initWorkingHoursRouter, {
 		prefix: '/tenants/:tenantId/working-hours',
 		service: workingHoursService,
+	});
+	const exceptionService = createExceptionService({
+		repo: createExceptionRepository(fastify.db),
+		specialistRepo,
+	});
+	await fastify.register(initExceptionRouter, {
+		prefix: '/tenants/:tenantId/exceptions',
+		service: exceptionService,
 	});
 };
 
