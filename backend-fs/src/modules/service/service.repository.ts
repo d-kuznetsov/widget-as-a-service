@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import {
 	Service,
@@ -25,6 +25,11 @@ export interface ServiceRepository {
 		serviceId: number,
 		specialistId: number
 	) => Promise<ServiceSpecialist>;
+	unassignSpecialistFromService: (
+		tenantId: number,
+		serviceId: number,
+		specialistId: number
+	) => Promise<ServiceSpecialist | null>;
 }
 
 export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
@@ -157,6 +162,27 @@ export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
 			} catch (error) {
 				mapServiceSpecialistUniqueViolation(error);
 				mapServiceSpecialistForeignKeyViolation(error);
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		unassignSpecialistFromService: async (
+			tenantId: number,
+			serviceId: number,
+			specialistId: number
+		) => {
+			try {
+				const [deleted] = await db
+					.delete(serviceSpecialistsTable)
+					.where(
+						and(
+							eq(serviceSpecialistsTable.tenantId, tenantId),
+							eq(serviceSpecialistsTable.serviceId, serviceId),
+							eq(serviceSpecialistsTable.specialistId, specialistId)
+						)
+					)
+					.returning();
+				return deleted ?? null;
+			} catch (error) {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
