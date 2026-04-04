@@ -1,5 +1,5 @@
 export interface PgErrorWithCause {
-	cause?: { code?: string; detail?: string };
+	cause?: { code?: string; detail?: string; constraint?: string };
 }
 
 export function isPgErrorWithCause(error: unknown): error is PgErrorWithCause {

@@ -68,6 +68,20 @@ export function createWorkingHoursRepository(
 		}
 	};
 
+	const mapWorkingHoursCheckViolation = (error: unknown) => {
+		if (!isPgErrorWithCause(error)) return;
+		const { code, constraint } = error.cause ?? {};
+		if (
+			code !== PostgresErrorCode.CHECK_VIOLATION ||
+			constraint !== 'working_hours_start_before_end'
+		) {
+			return;
+		}
+		throw DomainError.badRequest({
+			message: 'Start time must be before end time',
+		});
+	};
+
 	return {
 		create: async (tenantId: number, input: WorkingHoursCreateInput) => {
 			try {
@@ -79,6 +93,7 @@ export function createWorkingHoursRepository(
 			} catch (error) {
 				mapWorkingHoursUniqueViolation(error);
 				mapWorkingHoursForeignKeyViolation(error);
+				mapWorkingHoursCheckViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
@@ -136,6 +151,7 @@ export function createWorkingHoursRepository(
 			} catch (error) {
 				mapWorkingHoursUniqueViolation(error);
 				mapWorkingHoursForeignKeyViolation(error);
+				mapWorkingHoursCheckViolation(error);
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},

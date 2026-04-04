@@ -1,5 +1,8 @@
+import { sql } from 'drizzle-orm';
 import {
 	boolean,
+	check,
+	date,
 	foreignKey,
 	integer,
 	numeric,
@@ -213,8 +216,41 @@ export const workingHoursTable = pgTable(
 		isActive: boolean('is_active').notNull().default(true),
 		...timestamps,
 	},
-	(table) => [unique().on(table.specialistId, table.dayOfWeek)]
+	(table) => [
+		unique().on(table.specialistId, table.dayOfWeek),
+		check(
+			'working_hours_start_before_end',
+			sql`${table.startTime} < ${table.endTime}`
+		),
+	]
 );
 
 export type NewWorkingHour = typeof workingHoursTable.$inferInsert;
 export type WorkingHour = typeof workingHoursTable.$inferSelect;
+
+export const exceptionsTable = pgTable(
+	'exceptions',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer('tenant_id')
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		specialistId: integer('specialist_id')
+			.notNull()
+			.references(() => specialistsTable.id, { onDelete: 'cascade' }),
+		date: date('date').notNull(),
+		startTime: time('start_time').notNull(),
+		endTime: time('end_time').notNull(),
+		reason: text('reason').notNull(),
+		...timestamps,
+	},
+	(table) => [
+		check(
+			'exceptions_start_before_end',
+			sql`${table.startTime} < ${table.endTime}`
+		),
+	]
+);
+
+export type NewException = typeof exceptionsTable.$inferInsert;
+export type Exception = typeof exceptionsTable.$inferSelect;
