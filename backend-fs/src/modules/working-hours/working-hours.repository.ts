@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { WorkingHour, workingHoursTable } from '../../db/schema';
 import { DataBaseError, DomainError } from '../../shared/errors';
@@ -16,13 +16,21 @@ export interface WorkingHoursRepository {
 		tenantId: number,
 		input: WorkingHoursCreateInput
 	) => Promise<WorkingHour>;
-	findOne: (id: number) => Promise<WorkingHour | null>;
+	findOneByTenant: (
+		tenantId: number,
+		id: number
+	) => Promise<WorkingHour | null>;
 	findAll: () => Promise<WorkingHour[]>;
-	update: (
+	findAllByTenant: (tenantId: number) => Promise<WorkingHour[]>;
+	updateForTenant: (
+		tenantId: number,
 		id: number,
 		input: WorkingHoursUpdateInput
 	) => Promise<WorkingHour | null>;
-	delete: (id: number) => Promise<WorkingHour>;
+	deleteForTenant: (
+		tenantId: number,
+		id: number
+	) => Promise<WorkingHour | null>;
 }
 
 export function createWorkingHoursRepository(
@@ -74,12 +82,17 @@ export function createWorkingHoursRepository(
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		findOne: async (id: number) => {
+		findOneByTenant: async (tenantId: number, id: number) => {
 			try {
 				const [row] = await db
 					.select()
 					.from(workingHoursTable)
-					.where(eq(workingHoursTable.id, id))
+					.where(
+						and(
+							eq(workingHoursTable.id, id),
+							eq(workingHoursTable.tenantId, tenantId)
+						)
+					)
 					.limit(1);
 				return row ?? null;
 			} catch (error) {
@@ -93,12 +106,31 @@ export function createWorkingHoursRepository(
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		update: async (id: number, input: WorkingHoursUpdateInput) => {
+		findAllByTenant: async (tenantId: number) => {
+			try {
+				return await db
+					.select()
+					.from(workingHoursTable)
+					.where(eq(workingHoursTable.tenantId, tenantId));
+			} catch (error) {
+				throw new DataBaseError({ cause: error as Error });
+			}
+		},
+		updateForTenant: async (
+			tenantId: number,
+			id: number,
+			input: WorkingHoursUpdateInput
+		) => {
 			try {
 				const [updated] = await db
 					.update(workingHoursTable)
 					.set(input)
-					.where(eq(workingHoursTable.id, id))
+					.where(
+						and(
+							eq(workingHoursTable.id, id),
+							eq(workingHoursTable.tenantId, tenantId)
+						)
+					)
 					.returning();
 				return updated ?? null;
 			} catch (error) {
@@ -107,11 +139,16 @@ export function createWorkingHoursRepository(
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		delete: async (id: number) => {
+		deleteForTenant: async (tenantId: number, id: number) => {
 			try {
 				const [deleted] = await db
 					.delete(workingHoursTable)
-					.where(eq(workingHoursTable.id, id))
+					.where(
+						and(
+							eq(workingHoursTable.id, id),
+							eq(workingHoursTable.tenantId, tenantId)
+						)
+					)
 					.returning();
 				return deleted ?? null;
 			} catch (error) {

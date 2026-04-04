@@ -50,6 +50,7 @@ export enum DomainErrorCode {
 	SPECIALIST_USER_ALREADY_LINKED = 'SPECIALIST_USER_ALREADY_LINKED',
 	SPECIALIST_NOT_FOUND = 'SPECIALIST_NOT_FOUND',
 	SERVICE_NOT_FOUND = 'SERVICE_NOT_FOUND',
+	WORKING_HOURS_NOT_FOUND = 'WORKING_HOURS_NOT_FOUND',
 }
 
 export class DomainError extends AppError {
@@ -169,6 +170,13 @@ export class DomainError extends AppError {
 		return new DomainError({
 			message: 'Service not found',
 			code: DomainErrorCode.SERVICE_NOT_FOUND,
+			...params,
+		});
+	}
+	static workingHoursNotFound(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message: 'Working hours not found',
+			code: DomainErrorCode.WORKING_HOURS_NOT_FOUND,
 			...params,
 		});
 	}

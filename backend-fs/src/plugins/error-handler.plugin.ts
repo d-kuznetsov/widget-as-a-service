@@ -7,6 +7,7 @@ const mapErrorToStatusCode = (error: AppError) => {
 		case DomainErrorCode.TENANT_NOT_FOUND:
 		case DomainErrorCode.SPECIALIST_NOT_FOUND:
 		case DomainErrorCode.SERVICE_NOT_FOUND:
+		case DomainErrorCode.WORKING_HOURS_NOT_FOUND:
 			return 404;
 		case DomainErrorCode.USER_ALREADY_EXISTS:
 		case DomainErrorCode.TENANT_SLUG_ALREADY_EXISTS:
