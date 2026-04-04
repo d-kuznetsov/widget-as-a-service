@@ -2,11 +2,11 @@
 @contentType = application/json
 
 # Replace after login; path tenant must match JWT tenantId (unless super_admin).
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MzA3OTI3LCJleHAiOjE3NzUzMTE1Mjd9.RfzZW7PxpN15LezJgZ8GKOE8P7M17c1vHpxwPdPagus
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MzM3MDI0LCJleHAiOjE3NzUzNDA2MjR9.Lg139a0OcqB-LIwQjLyYRLo-3VOqidI1wTps9uAXDTs
 
 @tenantId = 9
 @specialistId = 8
-@exceptionId = 1
+@exceptionId = 2
 
 
 ### Create exception (specialist must belong to tenant)
