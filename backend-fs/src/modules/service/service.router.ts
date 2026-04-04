@@ -10,6 +10,7 @@ import {
 	serviceResponseSchema,
 	serviceSpecialistResponseSchema,
 	serviceUpdateSchema,
+	unassignSpecialistFromServiceParamsSchema,
 } from './service.schema';
 import { ServiceService } from './service.service';
 
@@ -78,6 +79,26 @@ export async function initServiceRouter(
 			return row;
 		},
 	});
+	fastify
+		.withTypeProvider<TypeBoxTypeProvider>()
+		.delete('/:id/specialists/:specialistId', {
+			schema: {
+				params: unassignSpecialistFromServiceParamsSchema,
+				response: {
+					200: serviceSpecialistResponseSchema,
+				},
+			},
+			onRequest: [
+				fastify.authenticate([Roles.TENANT_ADMIN, Roles.SUPER_ADMIN]),
+			],
+			handler: async (request) => {
+				return service.unassignSpecialistFromService(
+					request.params.tenantId,
+					request.params.id,
+					request.params.specialistId
+				);
+			},
+		});
 	fastify.withTypeProvider<TypeBoxTypeProvider>().get('/:id', {
 		schema: {
 			params: serviceParamsSchema,

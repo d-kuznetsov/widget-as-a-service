@@ -29,6 +29,11 @@ export const assignSpecialistToServiceBodySchema = Type.Object({
 	specialistId: Type.Number(),
 });
 
+export const unassignSpecialistFromServiceParamsSchema = Type.Object({
+	...serviceParamsSchema.properties,
+	specialistId: Type.Number(),
+});
+
 export const serviceSpecialistResponseSchema = Type.Object({
 	id: Type.Number(),
 	tenantId: Type.Number(),

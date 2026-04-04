@@ -2,10 +2,11 @@
 @contentType = application/json
 
 # Replace after login; path tenant must match JWT tenantId (unless super_admin).
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MjQ3NTYyLCJleHAiOjE3NzUyNTExNjJ9.RDhD2tlxMweG8uBXsdyjS7kMpmB-nshodgIstq9rH4o
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MzAxMzc4LCJleHAiOjE3NzUzMDQ5Nzh9.6E3q4QeA0Xh7zzKhC0AxzvynRAQO0qSZn21AkKlzB8I
 
-@tenantId = 91
-@serviceId = 5
+@tenantId = 9
+@serviceId = 6
+@specialistId = 8
 ### List services for tenant
 GET {{baseUrl}}/tenants/{{tenantId}}/services
 Authorization: Bearer {{accessToken}}
@@ -31,8 +32,12 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{accessToken}}
 
 {
-  "specialistId": 3
+  "specialistId": {{specialistId}}
 }
+
+### Unassign specialist from service
+DELETE {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}/specialists/{{specialistId}}
+Authorization: Bearer {{accessToken}}
 
 ### Update service
 PUT {{baseUrl}}/tenants/{{tenantId}}/services/{{serviceId}}
