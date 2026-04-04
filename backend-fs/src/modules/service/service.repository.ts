@@ -20,7 +20,7 @@ export interface ServiceRepository {
 	findAllByTenant: (tenantId: number) => Promise<Service[]>;
 	update: (id: number, input: ServiceUpdateInput) => Promise<Service | null>;
 	delete: (id: number) => Promise<Service>;
-	connectSpecialist: (
+	assignSpecialistToService: (
 		tenantId: number,
 		serviceId: number,
 		specialistId: number
@@ -143,7 +143,7 @@ export function createServiceRepository(db: NodePgDatabase): ServiceRepository {
 				throw new DataBaseError({ cause: error as Error });
 			}
 		},
-		connectSpecialist: async (
+		assignSpecialistToService: async (
 			tenantId: number,
 			serviceId: number,
 			specialistId: number

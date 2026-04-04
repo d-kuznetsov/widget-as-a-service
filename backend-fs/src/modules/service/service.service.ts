@@ -1,7 +1,13 @@
-import { Service } from '../../db/schema';
+import { Service, ServiceSpecialist } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
+import type { SpecialistRepository } from '../specialist/specialist.repository';
 import { ServiceRepository } from './service.repository';
 import { ServiceCreateInput, ServiceUpdateInput } from './service.schema';
+
+export interface ServiceServiceDeps {
+	repo: ServiceRepository;
+	specialistRepo: SpecialistRepository;
+}
 
 export interface ServiceService {
 	create: (tenantId: number, input: ServiceCreateInput) => Promise<Service>;
@@ -9,9 +15,15 @@ export interface ServiceService {
 	findAll: (tenantId: number) => Promise<Service[]>;
 	update: (id: number, input: ServiceUpdateInput) => Promise<Service>;
 	delete: (id: number) => Promise<Service>;
+	assignSpecialistToService: (
+		tenantId: number,
+		serviceId: number,
+		specialistId: number
+	) => Promise<ServiceSpecialist>;
 }
 
-export function createServiceService(repo: ServiceRepository): ServiceService {
+export function createServiceService(deps: ServiceServiceDeps): ServiceService {
+	const { repo, specialistRepo } = deps;
 	return {
 		create: async (tenantId: number, input: ServiceCreateInput) => {
 			return repo.create(tenantId, input);
@@ -39,6 +51,21 @@ export function createServiceService(repo: ServiceRepository): ServiceService {
 				throw DomainError.serviceNotFound();
 			}
 			return service;
+		},
+		assignSpecialistToService: async (
+			tenantId: number,
+			serviceId: number,
+			specialistId: number
+		) => {
+			const service = await repo.findOne(serviceId);
+			if (!service || service.tenantId !== tenantId) {
+				throw DomainError.serviceNotFound();
+			}
+			const specialist = await specialistRepo.findOne(specialistId);
+			if (!specialist || specialist.tenantId !== tenantId) {
+				throw DomainError.specialistNotFound();
+			}
+			return repo.assignSpecialistToService(tenantId, serviceId, specialistId);
 		},
 	};
 }

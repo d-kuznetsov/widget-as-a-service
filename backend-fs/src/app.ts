@@ -78,9 +78,10 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify) => {
 		prefix: '/tenants/:tenantId/specialists',
 		service: specialistService,
 	});
-	const serviceService = createServiceService(
-		createServiceRepository(fastify.db)
-	);
+	const serviceService = createServiceService({
+		repo: createServiceRepository(fastify.db),
+		specialistRepo,
+	});
 	await fastify.register(initServiceRouter, {
 		prefix: '/tenants/:tenantId/services',
 		service: serviceService,
