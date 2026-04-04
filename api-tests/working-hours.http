@@ -1,0 +1,66 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+# Replace after login; path tenant must match JWT tenantId (unless super_admin).
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQzLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJ0ZW5hbnRJZCI6bnVsbCwiaWF0IjoxNzc1MzAxMzc4LCJleHAiOjE3NzUzMDQ5Nzh9.6E3q4QeA0Xh7zzKhC0AxzvynRAQO0qSZn21AkKlzB8I
+
+@tenantId = 9
+@specialistId = 8
+@workingHoursId = 1
+
+### List working hours for tenant
+GET {{baseUrl}}/tenants/{{tenantId}}/working-hours
+Authorization: Bearer {{accessToken}}
+
+### Create working hours (specialist must belong to tenant)
+POST {{baseUrl}}/tenants/{{tenantId}}/working-hours
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "specialistId": {{specialistId}},
+  "dayOfWeek": "monday",
+  "startTime": "09:00:00",
+  "endTime": "17:00:00",
+  "isActive": true
+}
+
+### Create working hours (another weekday — unique per specialist + day)
+POST {{baseUrl}}/tenants/{{tenantId}}/working-hours
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "specialistId": {{specialistId}},
+  "dayOfWeek": "tuesday",
+  "startTime": "10:00:00",
+  "endTime": "14:00:00"
+}
+
+### Get working hours by id
+GET {{baseUrl}}/tenants/{{tenantId}}/working-hours/{{workingHoursId}}
+Authorization: Bearer {{accessToken}}
+
+### Update working hours
+PUT {{baseUrl}}/tenants/{{tenantId}}/working-hours/{{workingHoursId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "startTime": "08:30:00",
+  "endTime": "16:30:00",
+  "isActive": true
+}
+
+### Update working hours (partial — only isActive)
+PUT {{baseUrl}}/tenants/{{tenantId}}/working-hours/{{workingHoursId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{accessToken}}
+
+{
+  "isActive": false
+}
+
+### Delete working hours
+DELETE {{baseUrl}}/tenants/{{tenantId}}/working-hours/{{workingHoursId}}
+Authorization: Bearer {{accessToken}}
