@@ -1,5 +1,6 @@
-import { Appointment } from '../../db/schema';
+import { Appointment, Service } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
+import { addDurationToTime } from '../../shared/utils/date-time';
 import { generateRefreshToken, hashToken } from '../../shared/utils/token';
 import type { ServiceRepository } from '../service/service.repository';
 import type { SpecialistRepository } from '../specialist/specialist.repository';
@@ -46,17 +47,22 @@ export function createAppointmentService(
 		}
 	};
 
-	const assertServiceInTenant = async (tenantId: number, serviceId: number) => {
+	const assertServiceInTenant = async (
+		tenantId: number,
+		serviceId: number
+	): Promise<Service> => {
 		const service = await serviceRepo.findOne(serviceId);
 		if (!service || service.tenantId !== tenantId) {
 			throw DomainError.serviceNotFound();
 		}
+		return service;
 	};
 
 	return {
 		create: async (tenantId: number, input: AppointmentCreateInput) => {
 			await assertSpecialistInTenant(tenantId, input.specialistId);
-			await assertServiceInTenant(tenantId, input.serviceId);
+			const service = await assertServiceInTenant(tenantId, input.serviceId);
+			const endTime = addDurationToTime(input.startTime, service.duration);
 			const now = Date.now();
 			const confirmationToken = generateRefreshToken();
 			const manageToken = generateRefreshToken();
@@ -68,7 +74,7 @@ export function createAppointmentService(
 				customerPhone: input.customerPhone ?? null,
 				date: input.date,
 				startTime: input.startTime,
-				endTime: input.endTime,
+				endTime,
 				status: 'pending',
 				confirmationTokenHash: hashToken(confirmationToken),
 				confirmationTokenExpiresAt: new Date(now + CONFIRMATION_TOKEN_TTL_MS),

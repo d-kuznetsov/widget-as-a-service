@@ -1,5 +1,9 @@
 import { Type } from 'typebox';
 
+export const appointmentWallClockTimeSchema = Type.String({
+	pattern: '^(?:[01]\\d|2[0-3]):[0-5]\\d$',
+});
+
 export const appointmentStatusSchema = Type.Union([
 	Type.Literal('pending'),
 	Type.Literal('confirmed'),
@@ -23,8 +27,7 @@ export const appointmentCreateSchema = Type.Object({
 	customerEmail: Type.String({ minLength: 1 }),
 	customerPhone: Type.Optional(Type.String()),
 	date: Type.String({ minLength: 1 }),
-	startTime: Type.String({ minLength: 1 }),
-	endTime: Type.String({ minLength: 1 }),
+	startTime: appointmentWallClockTimeSchema,
 });
 
 export const appointmentUpdateSchema = Type.Partial(
@@ -35,8 +38,8 @@ export const appointmentUpdateSchema = Type.Partial(
 		customerEmail: Type.String({ minLength: 1 }),
 		customerPhone: Type.String(),
 		date: Type.String({ minLength: 1 }),
-		startTime: Type.String({ minLength: 1 }),
-		endTime: Type.String({ minLength: 1 }),
+		startTime: appointmentWallClockTimeSchema,
+		endTime: appointmentWallClockTimeSchema,
 		status: appointmentStatusSchema,
 	})
 );
