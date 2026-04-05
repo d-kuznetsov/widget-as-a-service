@@ -254,3 +254,53 @@ export const exceptionsTable = pgTable(
 
 export type NewException = typeof exceptionsTable.$inferInsert;
 export type Exception = typeof exceptionsTable.$inferSelect;
+
+export const appointmentStatusEnum = pgEnum('appointment_status', [
+	'pending',
+	'confirmed',
+	'completed',
+	'canceled',
+]);
+
+export type AppointmentStatus =
+	(typeof appointmentStatusEnum.enumValues)[number];
+
+export const appointmentsTable = pgTable(
+	'appointments',
+	{
+		id: integer().primaryKey().generatedAlwaysAsIdentity(),
+		tenantId: integer('tenant_id')
+			.notNull()
+			.references(() => tenantsTable.id, { onDelete: 'cascade' }),
+		specialistId: integer('specialist_id')
+			.notNull()
+			.references(() => specialistsTable.id, { onDelete: 'cascade' }),
+		serviceId: integer('service_id')
+			.notNull()
+			.references(() => servicesTable.id, { onDelete: 'cascade' }),
+		customerName: varchar('customer_name', { length: 255 }).notNull(),
+		customerEmail: varchar('customer_email', { length: 255 }).notNull(),
+		customerPhone: varchar('customer_phone', { length: 20 }),
+		date: date('date').notNull(),
+		startTime: time('start_time').notNull(),
+		endTime: time('end_time').notNull(),
+		status: appointmentStatusEnum('status').notNull().default('pending'),
+		confirmationTokenHash: varchar('confirmation_token_hash', { length: 255 }),
+		confirmationTokenExpiresAt: timestamp(
+			'confirmation_token_expires_at'
+		).notNull(),
+		manageTokenHash: varchar('manage_token_hash', { length: 255 }),
+		manageTokenExpiresAt: timestamp('manage_token_expires_at').notNull(),
+		createdAt: timestamps.createdAt,
+		updatedAt: timestamps.updatedAt,
+	},
+	(table) => [
+		check(
+			'appointments_start_before_end',
+			sql`${table.startTime} < ${table.endTime}`
+		),
+	]
+);
+
+export type NewAppointment = typeof appointmentsTable.$inferInsert;
+export type Appointment = typeof appointmentsTable.$inferSelect;
