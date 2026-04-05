@@ -43,6 +43,26 @@ async function applyDatabaseConstraints() {
       $$;
     `);
 
+		await db.execute(sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'no_overlapping_appointments'
+        ) THEN
+          ALTER TABLE "appointments"
+          ADD CONSTRAINT "no_overlapping_appointments"
+          EXCLUDE USING gist (
+            "specialist_id" WITH =,
+            "date" WITH =,
+            timerange("start_time", "end_time") WITH &&
+          )
+          WHERE ("status" <> 'canceled');
+        END IF;
+      END;
+      $$;
+    `);
+
 		console.log('✅ Exclusion constraints applied successfully!');
 		process.exit(0);
 	} catch (error) {
