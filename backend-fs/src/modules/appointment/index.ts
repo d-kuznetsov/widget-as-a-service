@@ -8,3 +8,8 @@ export type {
 	AppointmentCreateInput,
 	AppointmentUpdateInput,
 } from './appointment.schema';
+export {
+	type AppointmentService,
+	type AppointmentServiceDeps,
+	createAppointmentService,
+} from './appointment.service';
