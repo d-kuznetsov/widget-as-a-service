@@ -1,5 +1,6 @@
 import { Appointment } from '../../db/schema';
 import { DomainError } from '../../shared/errors';
+import { generateRefreshToken, hashToken } from '../../shared/utils/token';
 import type { ServiceRepository } from '../service/service.repository';
 import type { SpecialistRepository } from '../specialist/specialist.repository';
 import {
@@ -17,11 +18,17 @@ export interface AppointmentServiceDeps {
 	serviceRepo: ServiceRepository;
 }
 
+export interface AppointmentCreateResult {
+	appointment: Appointment;
+	confirmationToken: string;
+	manageToken: string;
+}
+
 export interface AppointmentService {
 	create: (
 		tenantId: number,
 		input: AppointmentCreateInput
-	) => Promise<Appointment>;
+	) => Promise<AppointmentCreateResult>;
 }
 
 export function createAppointmentService(
@@ -51,6 +58,8 @@ export function createAppointmentService(
 			await assertSpecialistInTenant(tenantId, input.specialistId);
 			await assertServiceInTenant(tenantId, input.serviceId);
 			const now = Date.now();
+			const confirmationToken = generateRefreshToken();
+			const manageToken = generateRefreshToken();
 			const payload: AppointmentCreateFields = {
 				specialistId: input.specialistId,
 				serviceId: input.serviceId,
@@ -61,12 +70,17 @@ export function createAppointmentService(
 				startTime: input.startTime,
 				endTime: input.endTime,
 				status: 'pending',
-				confirmationTokenHash: null,
+				confirmationTokenHash: hashToken(confirmationToken),
 				confirmationTokenExpiresAt: new Date(now + CONFIRMATION_TOKEN_TTL_MS),
-				manageTokenHash: null,
+				manageTokenHash: hashToken(manageToken),
 				manageTokenExpiresAt: new Date(now + MANAGE_TOKEN_TTL_MS),
 			};
-			return repo.create(tenantId, payload);
+			const appointment = await repo.create(tenantId, payload);
+			return {
+				appointment,
+				confirmationToken,
+				manageToken,
+			};
 		},
 	};
 }

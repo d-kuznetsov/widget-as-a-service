@@ -1,17 +1,15 @@
-import { randomBytes } from 'node:crypto';
 import { User } from '../../db/schema';
 import type { GenerateAccessTokenOptions } from '../../plugins/auth.plugin';
 import { DomainError } from '../../shared/errors';
 import { verifyPassword } from '../../shared/utils/password';
 import { type Role, Roles } from '../../shared/utils/roles';
-import { hashToken } from '../../shared/utils/token';
+import { generateRefreshToken, hashToken } from '../../shared/utils/token';
 import { InviteService } from '../invite/invite.service';
 import { UserService } from '../user/user.service';
 import { AuthRepository } from './auth.repository';
 import { LoginInput, LoginResponse, RegisterInput } from './auth.schema';
 
 const REFRESH_TOKEN_MS = 7 * 24 * 60 * 60 * 1000;
-const REFRESH_TOKEN_BYTES = 32;
 
 export interface AuthServiceDeps {
 	userService: UserService;
@@ -26,10 +24,6 @@ export interface AuthService {
 	refresh: (token: string) => Promise<LoginResponse>;
 	logout: (token: string) => Promise<void>;
 	logoutAll: (userId: number) => Promise<void>;
-}
-
-function generateRefreshToken(): string {
-	return randomBytes(REFRESH_TOKEN_BYTES).toString('hex');
 }
 
 export function createAuthService(deps: AuthServiceDeps): AuthService {

@@ -9,6 +9,7 @@ export type {
 	AppointmentUpdateInput,
 } from './appointment.schema';
 export {
+	type AppointmentCreateResult,
 	type AppointmentService,
 	type AppointmentServiceDeps,
 	createAppointmentService,
