@@ -52,6 +52,7 @@ export enum DomainErrorCode {
 	SERVICE_NOT_FOUND = 'SERVICE_NOT_FOUND',
 	WORKING_HOURS_NOT_FOUND = 'WORKING_HOURS_NOT_FOUND',
 	EXCEPTION_NOT_FOUND = 'EXCEPTION_NOT_FOUND',
+	EXCEPTION_OVERLAPS_EXISTING = 'EXCEPTION_OVERLAPS_EXISTING',
 }
 
 export class DomainError extends AppError {
@@ -185,6 +186,14 @@ export class DomainError extends AppError {
 		return new DomainError({
 			message: 'Schedule exception not found',
 			code: DomainErrorCode.EXCEPTION_NOT_FOUND,
+			...params,
+		});
+	}
+	static exceptionOverlapsExisting(params: Partial<AppErrorParams> = {}) {
+		return new DomainError({
+			message:
+				'This time range overlaps an existing schedule exception for this specialist on this date',
+			code: DomainErrorCode.EXCEPTION_OVERLAPS_EXISTING,
 			...params,
 		});
 	}

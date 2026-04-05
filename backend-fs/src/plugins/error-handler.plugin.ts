@@ -14,6 +14,7 @@ const mapErrorToStatusCode = (error: AppError) => {
 		case DomainErrorCode.TENANT_SLUG_ALREADY_EXISTS:
 		case DomainErrorCode.SPECIALIST_NAME_ALREADY_EXISTS:
 		case DomainErrorCode.SPECIALIST_USER_ALREADY_LINKED:
+		case DomainErrorCode.EXCEPTION_OVERLAPS_EXISTING:
 			return 409;
 		case DomainErrorCode.INVALID_CREDENTIALS:
 		case DomainErrorCode.AUTHENTICATION_ERROR:

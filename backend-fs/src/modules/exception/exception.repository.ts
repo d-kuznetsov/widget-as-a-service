@@ -56,6 +56,17 @@ export function createExceptionRepository(
 		}
 	};
 
+	const mapExceptionExclusionViolation = (error: unknown) => {
+		if (!isPgErrorWithCause(error)) return;
+		const { code, constraint } = error.cause ?? {};
+		if (
+			code === PostgresErrorCode.EXCLUSION_VIOLATION &&
+			constraint === 'no_overlapping_exceptions'
+		) {
+			throw DomainError.exceptionOverlapsExisting();
+		}
+	};
+
 	const mapExceptionCheckViolation = (error: unknown) => {
 		if (!isPgErrorWithCause(error)) return;
 		const { code, constraint } = error.cause ?? {};
@@ -79,6 +90,7 @@ export function createExceptionRepository(
 					.returning();
 				return row;
 			} catch (error) {
+				mapExceptionExclusionViolation(error);
 				mapExceptionUniqueViolation(error);
 				mapExceptionForeignKeyViolation(error);
 				mapExceptionCheckViolation(error);
@@ -137,6 +149,7 @@ export function createExceptionRepository(
 					.returning();
 				return updated ?? null;
 			} catch (error) {
+				mapExceptionExclusionViolation(error);
 				mapExceptionUniqueViolation(error);
 				mapExceptionForeignKeyViolation(error);
 				mapExceptionCheckViolation(error);

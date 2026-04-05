@@ -9,6 +9,7 @@ export function isPgErrorWithCause(error: unknown): error is PgErrorWithCause {
 export enum PostgresErrorCode {
 	// Integrity / constraints
 	UNIQUE_VIOLATION = '23505',
+	EXCLUSION_VIOLATION = '23P01',
 	FOREIGN_KEY_VIOLATION = '23503',
 	NOT_NULL_VIOLATION = '23502',
 	CHECK_VIOLATION = '23514',
